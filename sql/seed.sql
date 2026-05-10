@@ -1,7 +1,7 @@
 -- seed.sql - Datos de prueba generados automaticamente
 -- NO ejecutar en produccion
 -- Generado por generar_seed.py
-
+ 
 -- ===================== PERIODOS =====================
 INSERT INTO periodo (codigo, descripcion, fecha_inicio, fecha_fin, estado) VALUES ('202210', 'Primer semestre 2022', '2022-01-17', '2022-06-04', 'ACTIVO');
 INSERT INTO periodo (codigo, descripcion, fecha_inicio, fecha_fin, estado) VALUES ('202220', 'Segundo semestre 2022', '2022-07-18', '2022-12-03', 'ACTIVO');

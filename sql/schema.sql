@@ -18,7 +18,7 @@ CREATE TABLE asignatura(
     nombre VARCHAR(30) NOT NULL,
     creditos INT NOT NULL CHECK(creditos BETWEEN 0 AND 10),
     descripcion VARCHAR(100) NOT NULL,
-    tipo VARCHAR(10) NOT NULL CHECK(tipo IN ('OBLIGATORIA', 'ELECTIVA'))
+    tipo VARCHAR(11) NOT NULL CHECK(tipo IN ('OBLIGATORIA', 'ELECTIVA'))
 );
 
 CREATE TABLE servicio(
