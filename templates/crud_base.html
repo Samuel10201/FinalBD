@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block contenido %}
+<div class="card">
+    <h2>{% block titulo_formulario %}{% endblock %}</h2>
+    <form method="POST" action="{% block form_action %}{% endblock %}" class="form-inline">
+        {% block campos %}{% endblock %}
+        <div class="form-buttons">
+            {% block botones %}
+            <button type="submit" class="btn btn-primary">Guardar</button>
+            {% endblock %}
+        </div>
+    </form>
+</div>
+
+<div class="card">
+    <h2>{% block titulo_tabla %}Registros{% endblock %}</h2>
+    <table>
+        <thead>
+            <tr>{% block columnas %}{% endblock %}</tr>
+        </thead>
+        <tbody>
+            {% block filas %}{% endblock %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block titulo %}Sistema Cuenta Corriente{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    {% if session.get('usuario') %}
+    <nav class="navbar">
+        <div class="navbar-brand">Cuenta Corriente</div>
+        <div class="navbar-menu">
+            {% set rol = session.get('vista_rol') or session['usuario']['rol'] %}
+
+            {% if session['usuario']['rol'] == 'ADMINISTRADOR' %}
+            <div class="admin-bar">
+                <form method="POST" action="/admin/cambiar-vista">
+                    <label for="vista_rol">Ver como:</label>
+                    <select name="vista_rol" id="vista_rol" onchange="this.form.submit()">
+                        <option value="ADMINISTRADOR" {% if rol == 'ADMINISTRADOR' %}selected{% endif %}>Administrador</option>
+                        <option value="SUPERVISOR" {% if rol == 'SUPERVISOR' %}selected{% endif %}>Supervisor</option>
+                        <option value="ASISTENTE" {% if rol == 'ASISTENTE' %}selected{% endif %}>Asistente</option>
+                        <option value="ESTUDIANTE" {% if rol == 'ESTUDIANTE' %}selected{% endif %}>Estudiante</option>
+                    </select>
+                </form>
+                <a href="/admin/usuarios">Usuarios</a>
+            </div>
+            {% endif %}
+
+            <ul class="nav-links">
+                {% if rol in ['ADMINISTRADOR', 'SUPERVISOR'] %}
+                <li><a href="/configuracion/estudiantes">Estudiantes</a></li>
+                <li><a href="/configuracion/programas">Programas</a></li>
+                <li><a href="/configuracion/asignaturas">Asignaturas</a></li>
+                <li><a href="/configuracion/plan-estudio">Plan de Estudio</a></li>
+                <li><a href="/configuracion/periodos">Periodos</a></li>
+                <li><a href="/configuracion/servicios">Servicios</a></li>
+                <li><a href="/configuracion/costos">Costos</a></li>
+                {% endif %}
+
+                {% if rol in ['ADMINISTRADOR', 'ASISTENTE'] %}
+                <li><a href="/matricula/individual">Matrícula</a></li>
+                <li><a href="/matricula/masiva">Matrícula Masiva</a></li>
+                <li><a href="/pagos/registro">Registrar Pago</a></li>
+                <li><a href="/cuenta-corriente/consulta">Cuenta Corriente</a></li>
+                {% endif %}
+
+                {% if rol == 'ESTUDIANTE' %}
+                <li><a href="/estudiante/perfil">Mi Perfil</a></li>
+                <li><a href="/estudiante/cuenta">Mi Cuenta</a></li>
+                <li><a href="/pagos/en-linea">Pagar en Línea</a></li>
+                {% endif %}
+
+                {% if rol in ['ADMINISTRADOR', 'SUPERVISOR'] %}
+                <li><a href="/reportes/estudiantes-programa">Reportes</a></li>
+                {% endif %}
+            </ul>
+
+            <div class="nav-user">
+                <span>{{ session['usuario']['nombre'] }}</span>
+                <a href="/logout">Cerrar sesión</a>
+            </div>
+        </div>
+    </nav>
+    {% endif %}
+
+    <main class="container">
+        {% with mensajes = get_flashed_messages(with_categories=true) %}
+            {% if mensajes %}
+                {% for categoria, mensaje in mensajes %}
+                <div class="alert alert-{{ categoria }}">{{ mensaje }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block contenido %}{% endblock %}
+    </main>
+</body>
+</html>
