@@ -15,12 +15,13 @@ body {
 .navbar {
     background-color: #2c3e50;
     color: #fff;
-    padding: 0.8rem 1.5rem;
+}
+
+.navbar-top {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 0.5rem;
+    padding: 0.6rem 1.5rem;
 }
 
 .navbar-brand {
@@ -28,30 +29,33 @@ body {
     font-weight: bold;
 }
 
-.navbar-menu {
+.navbar-right {
     display: flex;
     align-items: center;
     gap: 1.5rem;
-    flex-wrap: wrap;
+}
+
+.navbar-bottom {
+    background-color: #34495e;
+    padding: 0 1.5rem;
 }
 
 .nav-links {
     list-style: none;
     display: flex;
-    gap: 0.8rem;
-    flex-wrap: wrap;
+    gap: 0.2rem;
 }
 
 .nav-links a {
     color: #ecf0f1;
     text-decoration: none;
-    padding: 0.4rem 0.7rem;
-    border-radius: 4px;
-    font-size: 0.9rem;
+    padding: 0.5rem 0.8rem;
+    font-size: 0.85rem;
+    display: block;
 }
 
 .nav-links a:hover {
-    background-color: #34495e;
+    background-color: #2c3e50;
 }
 
 .nav-user {
@@ -162,6 +166,8 @@ body {
     border: none;
     border-radius: 4px;
     font-size: 0.9rem;
+    font-family: inherit;
+    line-height: 1.5;
     cursor: pointer;
     text-decoration: none;
 }
@@ -182,6 +188,15 @@ body {
 
 .btn-danger:hover {
     background-color: #c0392b;
+}
+
+.btn-secondary {
+    background-color: #95a5a6;
+    color: #fff;
+}
+
+.btn-secondary:hover {
+    background-color: #7f8c8d;
 }
 
 .btn-success {
@@ -205,9 +220,10 @@ table {
 }
 
 th, td {
-    padding: 0.7rem 1rem;
+    padding: 0.4rem 0.8rem;
     text-align: left;
     border-bottom: 1px solid #eee;
+    font-size: 0.88rem;
 }
 
 th {
@@ -253,6 +269,131 @@ tr:hover {
     display: flex;
     gap: 0.5rem;
     align-items: flex-end;
+}
+
+/* Panel layout (60/40) */
+.panel-layout {
+    display: flex;
+    gap: 1.5rem;
+    align-items: flex-start;
+}
+
+.panel-main {
+    flex: 6;
+    min-width: 0;
+}
+
+.panel-side {
+    flex: 4;
+    min-width: 280px;
+    position: sticky;
+    top: 1rem;
+}
+
+.panel-side .card {
+    margin-bottom: 1rem;
+}
+
+.panel-side .form-group {
+    margin-bottom: 0.8rem;
+}
+
+.panel-side .btn {
+    width: 100%;
+    margin-bottom: 0.5rem;
+}
+
+/* Pestanas de accion */
+.action-tabs {
+    display: flex;
+    margin-bottom: 1rem;
+}
+
+.action-tabs a {
+    flex: 1;
+    text-align: center;
+    padding: 0.5rem 0.3rem;
+    text-decoration: none;
+    background-color: #ecf0f1;
+    color: #555;
+    border: 1px solid #ddd;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.action-tabs a:first-child {
+    border-radius: 4px 0 0 4px;
+}
+
+.action-tabs a:last-child {
+    border-radius: 0 4px 4px 0;
+}
+
+.action-tabs a.active {
+    background-color: #3498db;
+    color: #fff;
+    border-color: #3498db;
+}
+
+.table-container {
+    overflow-x: auto;
+}
+
+.table-info {
+    font-size: 0.85rem;
+    color: #666;
+    margin-bottom: 0.5rem;
+}
+
+td a {
+    color: #3498db;
+    text-decoration: none;
+}
+
+td a:hover {
+    text-decoration: underline;
+}
+
+.truncate {
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.paginacion {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+    font-size: 0.85rem;
+}
+
+.paginacion a {
+    color: #3498db;
+    text-decoration: none;
+    padding: 0.3rem 0.8rem;
+    border: 1px solid #3498db;
+    border-radius: 4px;
+}
+
+.paginacion a:hover {
+    background-color: #3498db;
+    color: #fff;
+}
+
+.panel-mensaje {
+    color: #666;
+    font-size: 0.9rem;
+    text-align: center;
+    padding: 1rem 0;
+}
+
+/* Container amplio para paneles */
+.container-wide {
+    max-width: 1400px;
+    margin: 2rem auto;
+    padding: 0 1.5rem;
 }
 
 /* Login */

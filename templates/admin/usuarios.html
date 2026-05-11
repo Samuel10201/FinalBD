@@ -1,0 +1,262 @@
+{% extends "base.html" %}
+{% block titulo %}Gestion de Usuarios{% endblock %}
+{% block contenido %}
+
+<h2 style="margin-bottom: 1rem; color: #2c3e50;">Gestion de Usuarios</h2>
+
+<div class="card">
+    <div class="action-tabs">
+        <a href="/admin/usuarios?accion=buscar" class="{% if accion == 'buscar' %}active{% endif %}">Buscar</a>
+        <a href="/admin/usuarios?accion=crear" class="{% if accion == 'crear' %}active{% endif %}">Crear</a>
+        <a href="/admin/usuarios?accion=actualizar" class="{% if accion == 'actualizar' %}active{% endif %}">Actualizar</a>
+        <a href="/admin/usuarios?accion=desactivar" class="{% if accion == 'desactivar' %}active{% endif %}">Desactivar</a>
+    </div>
+
+    {% if accion == 'buscar' %}
+    <form method="GET" action="/admin/usuarios" class="form-inline">
+        <input type="hidden" name="accion" value="buscar">
+        <div class="form-group">
+            <label for="buscar">Nombre, correo o ID</label>
+            <input type="text" id="buscar" name="buscar" value="{{ buscar }}" placeholder="Escriba para buscar...">
+        </div>
+        <div class="form-buttons">
+            <button type="submit" class="btn btn-primary">Buscar</button>
+            {% if buscar %}
+            <a href="/admin/usuarios?accion=buscar" class="btn btn-secondary">Limpiar</a>
+            {% endif %}
+        </div>
+    </form>
+
+    {% elif accion == 'crear' %}
+    <form method="POST" action="/admin/usuarios/crear" class="form-inline">
+        <div class="form-group">
+            <label for="tipo_id">Tipo ID</label>
+            <select id="tipo_id" name="tipo_id" required>
+                <option value="">--</option>
+                <option value="CC">CC</option>
+                <option value="TI">TI</option>
+                <option value="CE">CE</option>
+                <option value="PP">PP</option>
+                <option value="RC">RC</option>
+                <option value="NI">NI</option>
+                <option value="PE">PE</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="id">Identificacion</label>
+            <input type="text" id="id" name="id" required>
+        </div>
+        <div class="form-group">
+            <label for="nombre">Nombre</label>
+            <input type="text" id="nombre" name="nombre" required>
+        </div>
+        <div class="form-group">
+            <label for="correo">Correo</label>
+            <input type="email" id="correo" name="correo" required>
+        </div>
+        <div class="form-group">
+            <label for="contrasena">Contrasena</label>
+            <input type="password" id="contrasena" name="contrasena" required>
+        </div>
+        <div class="form-group">
+            <label for="rol">Rol</label>
+            <select id="rol" name="rol" required>
+                <option value="SUPERVISOR">SUPERVISOR</option>
+                <option value="ASISTENTE">ASISTENTE</option>
+            </select>
+        </div>
+        <div class="form-buttons">
+            <button type="submit" class="btn btn-primary">Guardar</button>
+        </div>
+    </form>
+
+    {% elif accion == 'actualizar' %}
+        {% if seleccionado %}
+        <form method="POST" action="/admin/usuarios/{{ seleccionado.tipo_id.strip() }}/{{ seleccionado.id }}/editar" class="form-inline">
+            <div class="form-group">
+                <label for="tipo_id">Tipo ID</label>
+                <select id="tipo_id" name="tipo_id" required>
+                    {% for t in ['CC', 'TI', 'CE', 'PP', 'RC', 'NI', 'PE'] %}
+                    <option value="{{ t }}" {% if seleccionado.tipo_id.strip() == t %}selected{% endif %}>{{ t }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Identificacion</label>
+                <input type="text" value="{{ seleccionado.id }}" disabled>
+            </div>
+            <div class="form-group">
+                <label for="nombre">Nombre</label>
+                <input type="text" id="nombre" name="nombre" value="{{ seleccionado.nombre }}" required>
+            </div>
+            <div class="form-group">
+                <label for="correo">Correo</label>
+                <input type="email" id="correo" name="correo" value="{{ seleccionado.correo }}" required>
+            </div>
+            <div class="form-group">
+                <label for="contrasena">Contrasena</label>
+                <input type="password" id="contrasena" name="contrasena" placeholder="Dejar vacio para no cambiar">
+            </div>
+            <div class="form-group">
+                <label for="rol">Rol</label>
+                {% if seleccionado.rol == 'ADMINISTRADOR' %}
+                <input type="hidden" name="rol" value="ADMINISTRADOR">
+                <input type="text" value="ADMINISTRADOR" disabled>
+                {% else %}
+                <select id="rol" name="rol" required>
+                    <option value="SUPERVISOR" {% if seleccionado.rol == 'SUPERVISOR' %}selected{% endif %}>SUPERVISOR</option>
+                    <option value="ASISTENTE" {% if seleccionado.rol == 'ASISTENTE' %}selected{% endif %}>ASISTENTE</option>
+                    <option value="ESTUDIANTE" {% if seleccionado.rol == 'ESTUDIANTE' %}selected{% endif %}>ESTUDIANTE</option>
+                </select>
+                {% endif %}
+            </div>
+            <div class="form-group">
+                <label for="estado">Estado</label>
+                <select id="estado" name="estado" required>
+                    <option value="ACTIVO" {% if seleccionado.estado == 'ACTIVO' %}selected{% endif %}>ACTIVO</option>
+                    <option value="INACTIVO" {% if seleccionado.estado == 'INACTIVO' %}selected{% endif %}>INACTIVO</option>
+                </select>
+            </div>
+            <div class="form-buttons">
+                <button type="submit" class="btn btn-primary">Actualizar</button>
+            </div>
+        </form>
+        {% else %}
+        <form method="GET" action="/admin/usuarios" class="form-inline">
+            <input type="hidden" name="accion" value="actualizar">
+            <div class="form-group">
+                <label for="correo">Correo</label>
+                <input type="email" id="correo" name="correo" placeholder="correo@ejemplo.com">
+            </div>
+            <p style="align-self: flex-end; margin: 0 0.3rem 0.35rem; color: #999; font-style: italic;">o</p>
+            <div class="form-group">
+                <label for="tipo_id">Tipo ID</label>
+                <select id="tipo_id" name="tipo_id">
+                    <option value="">--</option>
+                    <option value="CC">CC</option>
+                    <option value="TI">TI</option>
+                    <option value="CE">CE</option>
+                    <option value="PP">PP</option>
+                    <option value="RC">RC</option>
+                    <option value="NI">NI</option>
+                    <option value="PE">PE</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="id">Identificacion</label>
+                <input type="text" id="id" name="id" placeholder="Numero de documento">
+            </div>
+            <div class="form-buttons">
+                <button type="submit" class="btn btn-primary">Cargar</button>
+            </div>
+        </form>
+        {% endif %}
+
+    {% elif accion == 'desactivar' %}
+        {% if seleccionado %}
+        <div class="form-inline" style="align-items: center">
+            <div class="form-group">
+                <label>Usuario</label>
+                <input type="text" value="{{ seleccionado.nombre }}" disabled>
+            </div>
+            <div class="form-group">
+                <label>Documento</label>
+                <input type="text" value="{{ seleccionado.tipo_id.strip() }} {{ seleccionado.id }}" disabled>
+            </div>
+            <div class="form-group">
+                <label>Rol</label>
+                <input type="text" value="{{ seleccionado.rol }}" disabled>
+            </div>
+            <div class="form-group">
+                <label>Estado</label>
+                <input type="text" value="{{ seleccionado.estado }}" disabled>
+            </div>
+            <div class="form-buttons">
+                {% if seleccionado.estado == 'ACTIVO' %}
+                <form method="POST" action="/admin/usuarios/{{ seleccionado.tipo_id.strip() }}/{{ seleccionado.id }}/desactivar">
+                    <button type="submit" class="btn btn-danger">Confirmar</button>
+                </form>
+                {% else %}
+                <span class="btn btn-success" style="cursor: default">Ya inactivo</span>
+                {% endif %}
+            </div>
+        </div>
+        {% else %}
+        <form method="GET" action="/admin/usuarios" class="form-inline">
+            <input type="hidden" name="accion" value="desactivar">
+            <div class="form-group">
+                <label for="correo">Correo</label>
+                <input type="email" id="correo" name="correo" placeholder="correo@ejemplo.com">
+            </div>
+            <p style="align-self: flex-end; margin: 0 0.3rem 0.35rem; color: #999; font-style: italic;">o</p>
+            <div class="form-group">
+                <label for="tipo_id">Tipo ID</label>
+                <select id="tipo_id" name="tipo_id">
+                    <option value="">--</option>
+                    <option value="CC">CC</option>
+                    <option value="TI">TI</option>
+                    <option value="CE">CE</option>
+                    <option value="PP">PP</option>
+                    <option value="RC">RC</option>
+                    <option value="NI">NI</option>
+                    <option value="PE">PE</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="id">Identificacion</label>
+                <input type="text" id="id" name="id" placeholder="Numero de documento">
+            </div>
+            <div class="form-buttons">
+                <button type="submit" class="btn btn-primary">Cargar</button>
+            </div>
+        </form>
+        {% endif %}
+    {% endif %}
+</div>
+
+<div class="card">
+    <p class="table-info">
+        Mostrando {{ usuarios|length }} resultado{{ 's' if usuarios|length != 1 else '' }}
+        {%- if buscar %} para "{{ buscar }}"{% endif %}
+        {%- if pagina > 1 %} (pagina {{ pagina }}){% endif %}
+    </p>
+    <table>
+        <thead>
+            <tr>
+                <th>Tipo ID</th>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Correo</th>
+                <th>Rol</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for u in usuarios %}
+            <tr>
+                <td>{{ u.tipo_id.strip() }}</td>
+                <td>{{ u.id }}</td>
+                <td>{{ u.nombre }}</td>
+                <td class="truncate" title="{{ u.correo }}">{{ u.correo }}</td>
+                <td>{{ u.rol }}</td>
+                <td>{{ u.estado }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <div class="paginacion">
+        {% if pagina > 1 %}
+        <a href="/admin/usuarios?accion={{ accion }}&pagina={{ pagina - 1 }}{% if buscar %}&buscar={{ buscar }}{% endif %}">&larr; Anterior</a>
+        {% else %}
+        <span></span>
+        {% endif %}
+        <span>Pagina {{ pagina }}</span>
+        {% if usuarios|length == 20 %}
+        <a href="/admin/usuarios?accion={{ accion }}&pagina={{ pagina + 1 }}{% if buscar %}&buscar={{ buscar }}{% endif %}">Siguiente &rarr;</a>
+        {% else %}
+        <span></span>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}
