@@ -255,6 +255,96 @@ app = Flask(__name__)
 app.register_blueprint(matricula_bp)
 ```
 
+### Templates HTML: como usarlos
+
+Hay dos templates base. Cada pagina del proyecto debe heredar de uno de ellos.
+
+#### Opcion 1: `base.html` (paginas libres)
+
+Para paginas que NO son CRUD (matricula, pagos, cuenta corriente, reportes, perfil estudiante, login). Hereda la navbar y el layout general, y te da un bloque vacio para poner lo que quieras.
+
+```html
+{% extends "base.html" %}
+{% block titulo %}Nombre de la pagina{% endblock %}
+{% block contenido %}
+    <!-- Tu contenido aqui -->
+{% endblock %}
+```
+
+#### Opcion 2: `crud_base.html` (paginas de configuracion)
+
+Para paginas de CRUD (estudiantes, programas, asignaturas, periodos, servicios, costos, usuarios). Ya trae la estructura de formulario arriba + tabla abajo. Solo hay que llenar los bloques.
+
+```html
+{% extends "crud_base.html" %}
+
+{% block titulo_formulario %}Crear Programa{% endblock %}
+{% block form_action %}/configuracion/programas{% endblock %}
+
+{% block campos %}
+<div class="form-group">
+    <label for="nombre">Nombre</label>
+    <input type="text" id="nombre" name="nombre">
+</div>
+<div class="form-group">
+    <label for="facultad">Facultad</label>
+    <input type="text" id="facultad" name="facultad">
+</div>
+{% endblock %}
+
+{% block columnas %}
+<th>Nombre</th><th>Facultad</th><th>Acciones</th>
+{% endblock %}
+
+{% block filas %}
+{% for p in programas %}
+<tr>
+    <td>{{ p.nombre }}</td>
+    <td>{{ p.facultad }}</td>
+    <td><a href="#">Editar</a> | <a href="#">Desactivar</a></td>
+</tr>
+{% endfor %}
+{% endblock %}
+```
+
+Bloques disponibles en `crud_base.html`:
+- `titulo_formulario`: titulo del card del formulario.
+- `form_action`: URL a la que se envia el formulario (POST).
+- `campos`: los inputs del formulario, cada uno dentro de un `<div class="form-group">`.
+- `botones`: (opcional) botones del formulario. Por defecto trae un boton "Guardar".
+- `titulo_tabla`: titulo del card de la tabla. Por defecto dice "Registros".
+- `columnas`: los `<th>` de la tabla.
+- `filas`: las filas `<tr>` de la tabla, normalmente dentro de un `{% for ... %}`.
+
+#### Clases CSS disponibles
+
+| Clase | Uso |
+|-------|-----|
+| `card` | Contenedor con fondo blanco, bordes redondeados y sombra. Para envolver secciones. |
+| `form-group` | Contenedor de un campo de formulario (label + input). |
+| `btn btn-primary` | Boton azul (accion principal). |
+| `btn btn-danger` | Boton rojo (eliminar, desactivar). |
+| `btn btn-success` | Boton verde (confirmar). |
+| `alert alert-success` | Mensaje de exito (verde). |
+| `alert alert-error` | Mensaje de error (rojo). |
+| `alert alert-warning` | Mensaje de advertencia (amarillo). |
+| `login-container` | Contenedor centrado para la pagina de login. |
+
+#### Mensajes flash
+
+Para mostrar mensajes de exito o error despues de una operacion, usar `flash()` de Flask en la ruta:
+
+```python
+from flask import flash, redirect
+
+flash('Programa creado exitosamente', 'success')   # verde
+flash('Error: el programa ya existe', 'error')     # rojo
+flash('El periodo esta proximo a vencer', 'warning')  # amarillo
+return redirect('/configuracion/programas')
+```
+
+Los mensajes se muestran automaticamente en `base.html` (no hay que agregar nada en el template).
+
 ---
 
 ## 5. Pantallas del sistema (22)
