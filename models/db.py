@@ -16,16 +16,39 @@ referencia son los indices, lo que es muy sensible, ya que si se cambia el orden
 las columnas en la tabla original o la consulta entonces habra inconsistencias.
 """
 from psycopg2.extras import RealDictCursor
+from dotenv import load_dotenv
 
 
 def get_connection():
+    """Crea y retorna una conexion a PostgreSQL (Supabase).
+    Usa DATABASE_URL del .env.
+    
+    Retorna:
+        psycopg2.connection: Conexión a la base de datos
+    
+    Raises:
+        psycopg2.Error: Si no puede conectarse a la BD
     """
-    Crea y retorna una conexion a PostgreSQL (Supabase). Usa DATABASE_URL del .env.
-    Retorna un objeto de tipo connection, que sirve para comunicarse con la db.
-    """
-    return psycopg2.connect(os.environ['DATABASE_URL'], cursor_factory=RealDictCursor)
+    try:
+        database_url = os.getenv('DATABASE_URL')
+        if not database_url:
+            raise ValueError('DATABASE_URL no configurada en .env')
+        
+        conn = psycopg2.connect(database_url)
+        return conn
+    except psycopg2.Error as e:
+        print(f"Error de conexión a la BD: {e}")
+        raise
+
 
 def close_connection(conn):
-    """Cierra una conexion a la base de datos de forma segura."""
-    if conn and conn.closed == 0:
-        conn.close()
+    """Cierra una conexión a la base de datos de forma segura.
+    
+    Args:
+        conn (psycopg2.connection): Conexión a cerrar
+    """
+    if conn:
+        try:
+            conn.close()
+        except Exception as e:
+            print(f"Error cerrando conexión: {e}")
