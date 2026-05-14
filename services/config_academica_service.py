@@ -4,8 +4,8 @@ import bcrypt
 
 # --- Estudiantes ---
 
-def listar_estudiantes(correo=None, tipo_id=None, id_num=None, limit=20):
-    """Retorna lista de estudiantes, con filtros opcionales."""
+def listar_estudiantes(correo=None, tipo_id=None, id_num=None, limit=20, offset=0):
+    """Retorna lista de estudiantes, con filtros opcionales y paginacion."""
     conn = get_connection()
     try:
         with conn.cursor() as cur:
@@ -18,17 +18,18 @@ def listar_estudiantes(correo=None, tipo_id=None, id_num=None, limit=20):
             params = []
             if correo:
                 query += "AND u.correo ILIKE %s "
-                params.append(f"%{correo}%")
+                params.append(f"{correo}%")
             if tipo_id:
                 query += "AND e.tipo_id = %s "
                 params.append(tipo_id)
             if id_num:
                 query += "AND e.id ILIKE %s "
-                params.append(f"%{id_num}%")
-                
-            query += "ORDER BY e.codigo LIMIT %s"
+                params.append(f"{id_num}%")
+
+            query += "ORDER BY e.codigo LIMIT %s OFFSET %s"
             params.append(limit)
-            
+            params.append(offset)
+
             cur.execute(query, tuple(params))
             return cur.fetchall()
     finally:
@@ -115,12 +116,21 @@ def desactivar_estudiante(codigo):
 
 # --- Programas Academicos ---
 
-def listar_programas():
-    """Retorna lista de todos los programas academicos."""
+def listar_programas(facultad=None, modo=None):
+    """Retorna lista de programas academicos, con filtros opcionales."""
     conn = get_connection()
     try:
         with conn.cursor() as cur:
-            cur.execute("SELECT * FROM programa_academico ORDER BY nombre")
+            query = "SELECT * FROM programa_academico WHERE 1=1 "
+            params = []
+            if facultad:
+                query += "AND facultad ILIKE %s "
+                params.append(f"{facultad}%")
+            if modo:
+                query += "AND modo = %s "
+                params.append(modo)
+            query += "ORDER BY nombre"
+            cur.execute(query, tuple(params))
             return cur.fetchall()
     finally:
         close_connection(conn)
@@ -172,27 +182,28 @@ def desactivar_programa(nombre):
 
 # --- Asignaturas ---
 
-def listar_asignaturas(codigo=None, nombre=None, tipo=None, limit=20):
-    """Retorna lista de asignaturas, con filtros opcionales."""
+def listar_asignaturas(codigo=None, nombre=None, tipo=None, limit=20, offset=0):
+    """Retorna lista de asignaturas, con filtros opcionales y paginacion."""
     conn = get_connection()
     try:
         with conn.cursor() as cur:
             query = "SELECT * FROM asignatura WHERE 1=1 "
             params = []
-            
+
             if codigo:
                 query += "AND codigo ILIKE %s "
-                params.append(f"%{codigo}%")
+                params.append(f"{codigo}%")
             if nombre:
                 query += "AND nombre ILIKE %s "
-                params.append(f"%{nombre}%")
+                params.append(f"{nombre}%")
             if tipo:
                 query += "AND tipo = %s "
                 params.append(tipo)
-                
-            query += "ORDER BY codigo LIMIT %s"
+
+            query += "ORDER BY codigo LIMIT %s OFFSET %s"
             params.append(limit)
-            
+            params.append(offset)
+
             cur.execute(query, tuple(params))
             return cur.fetchall()
     finally:

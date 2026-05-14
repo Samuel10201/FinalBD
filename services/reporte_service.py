@@ -1,23 +1,21 @@
-import psycopg2
+from models.db import get_connection, close_connection
 from psycopg2.extras import DictCursor
-from models.db import get_connection
+
 
 def get_estudiante_perfil(codigo_estudiante):
     conn = get_connection()
-    with conn:
+    try:
         with conn.cursor(cursor_factory=DictCursor) as cur:
-            # Datos personales
             cur.execute("""
-                SELECT codigo, nombre, estado, fecha_nacimiento, direccion 
-                FROM estudiante 
+                SELECT codigo, nombre, estado, fecha_nacimiento, direccion
+                FROM estudiante
                 WHERE codigo = %s
             """, (codigo_estudiante,))
             estudiante = cur.fetchone()
-            
+
             if not estudiante:
                 return None
 
-            # Matrícula actual (última creada)
             cur.execute("""
                 SELECT m.prog_acad, m.semestre, m.modalidad, m.cod_periodo, p.descripcion as desc_periodo
                 FROM matricula m
@@ -30,7 +28,6 @@ def get_estudiante_perfil(codigo_estudiante):
 
             plan_estudio = []
             if matricula:
-                # Plan de estudio para el programa
                 cur.execute("""
                     SELECT pe.semestre, a.codigo, a.nombre, a.creditos, a.tipo
                     FROM plan_estudio pe
@@ -38,17 +35,16 @@ def get_estudiante_perfil(codigo_estudiante):
                     WHERE pe.nombre_programa = %s
                     ORDER BY pe.semestre ASC, a.nombre ASC
                 """, (matricula['prog_acad'],))
-                
+
                 materias = cur.fetchall()
-                
-                # Agrupar materias por semestre
+
                 semestres = {}
                 for mat in materias:
                     s = mat['semestre']
                     if s not in semestres:
                         semestres[s] = []
                     semestres[s].append(mat)
-                
+
                 plan_estudio = [{'semestre': k, 'materias': v} for k, v in semestres.items()]
 
             return {
@@ -56,15 +52,17 @@ def get_estudiante_perfil(codigo_estudiante):
                 'matricula': matricula,
                 'plan_estudio': plan_estudio
             }
+    finally:
+        close_connection(conn)
+
 
 def get_reporte_estudiantes_programa(periodo, programa):
     conn = get_connection()
-    with conn:
+    try:
         with conn.cursor(cursor_factory=DictCursor) as cur:
-            # Obtenemos los estudiantes y calculamos el costo de su matrícula
             cur.execute("""
                 SELECT e.codigo, e.nombre, m.modalidad, m.semestre,
-                       CASE 
+                       CASE
                            WHEN m.modalidad = 'GLOBAL' THEN c.costo_global
                            ELSE (
                                SELECT COALESCE(SUM(a.creditos), 0) * c.costo_credito
@@ -80,17 +78,20 @@ def get_reporte_estudiantes_programa(periodo, programa):
                 ORDER BY e.nombre
             """, (periodo, programa))
             return cur.fetchall()
+    finally:
+        close_connection(conn)
+
 
 def get_reporte_ingreso_esperado(periodo, programa):
     estudiantes = get_reporte_estudiantes_programa(periodo, programa)
     total = sum([float(e['monto']) for e in estudiantes if e['monto']])
     return total, estudiantes
 
+
 def get_reporte_pendientes_pago(periodo, programa):
     conn = get_connection()
-    with conn:
+    try:
         with conn.cursor(cursor_factory=DictCursor) as cur:
-            # Los COBRO restan, los PAGO suman. Si el saldo es menor a 0, debe dinero.
             cur.execute("""
                 SELECT e.codigo, e.nombre,
                 ABS(SUM(
@@ -105,7 +106,7 @@ def get_reporte_pendientes_pago(periodo, programa):
                 JOIN servicio s ON cc.codigo_servicio = s.codigo
                 JOIN matricula m ON m.cod_estudiante = e.codigo AND m.cod_periodo = cc.codigo_periodo
                 LEFT JOIN pago p ON cc.id_pago = p.id
-                WHERE cc.codigo_periodo = %s 
+                WHERE cc.codigo_periodo = %s
                   AND m.prog_acad = %s
                   AND (cc.id_pago IS NULL OR p.estado <> 'ANULADO')
                 GROUP BY e.codigo, e.nombre
@@ -119,10 +120,13 @@ def get_reporte_pendientes_pago(periodo, programa):
                 ORDER BY e.nombre
             """, (periodo, programa))
             return cur.fetchall()
+    finally:
+        close_connection(conn)
+
 
 def get_reporte_ingreso_real(periodo, programa):
     conn = get_connection()
-    with conn:
+    try:
         with conn.cursor(cursor_factory=DictCursor) as cur:
             cur.execute("""
                 SELECT SUM(cc.valor) as total_ingreso
@@ -130,25 +134,31 @@ def get_reporte_ingreso_real(periodo, programa):
                 JOIN servicio s ON cc.codigo_servicio = s.codigo
                 JOIN matricula m ON m.cod_estudiante = cc.cod_estudiante AND m.cod_periodo = cc.codigo_periodo
                 LEFT JOIN pago p ON cc.id_pago = p.id
-                WHERE cc.codigo_periodo = %s 
+                WHERE cc.codigo_periodo = %s
                   AND m.prog_acad = %s
                   AND s.grupo = 'PAGO'
                   AND p.estado = 'COMPLETADO'
             """, (periodo, programa))
             res = cur.fetchone()
             return float(res['total_ingreso']) if res and res['total_ingreso'] else 0.0
+    finally:
+        close_connection(conn)
+
 
 def get_reporte_cartera(periodo, programa):
     pendientes = get_reporte_pendientes_pago(periodo, programa)
     total_cartera = sum([float(p['saldo_pendiente']) for p in pendientes])
     return total_cartera, pendientes
 
+
 def get_filtros_disponibles():
     conn = get_connection()
-    with conn:
+    try:
         with conn.cursor(cursor_factory=DictCursor) as cur:
             cur.execute("SELECT codigo, descripcion FROM periodo ORDER BY codigo DESC")
             periodos = cur.fetchall()
             cur.execute("SELECT nombre FROM programa_academico ORDER BY nombre")
             programas = cur.fetchall()
             return periodos, programas
+    finally:
+        close_connection(conn)

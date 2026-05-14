@@ -1,190 +1,140 @@
 {% extends "base.html" %}
 
-{% block title %}Matrícula Masiva{% endblock %}
+{% block titulo %}Matricula Masiva{% endblock %}
 
-{% block content %}
-<div class="container mt-5">
-    <div class="row">
-        <div class="col-lg-10 mx-auto">
-            <h1>Matrícula Masiva</h1>
-            <p class="text-muted">Inscribe automáticamente a todos los estudiantes activos de un programa para el período siguiente</p>
-            
-            <!-- Mensajes -->
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    {% for category, message in messages %}
-                        <div class="alert alert-{{ 'success' if category == 'success' else 'danger' if category == 'error' else 'warning' }} alert-dismissible fade show" role="alert">
-                            {{ message }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
+{% block contenido %}
+<h2 style="margin-bottom: 1rem; color: #2c3e50;">Matricula Masiva</h2>
+<p style="color: #666; margin-bottom: 1rem;">Inscribe automaticamente a todos los estudiantes activos de un programa para el periodo siguiente</p>
+
+<!-- Formulario de entrada -->
+<div class="card">
+    <h3 style="margin-bottom: 1rem;">Seleccionar Programa y Periodo</h3>
+    <form method="POST">
+        <div class="form-inline">
+            <div class="form-group">
+                <label for="prog_acad">Programa Academico *</label>
+                <input
+                    type="text"
+                    id="prog_acad"
+                    name="prog_acad"
+                    placeholder="Nombre del programa"
+                    list="programas_list"
+                    value="{{ prog_acad_seleccionado or '' }}"
+                    required>
+                <datalist id="programas_list">
+                    {% for prog in programas %}
+                        <option value="{{ prog.nombre }}"></option>
                     {% endfor %}
-                {% endif %}
-            {% endwith %}
-            
-            <!-- Formulario de entrada -->
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="mb-0">Seleccionar Programa y Período</h5>
-                </div>
-                <div class="card-body">
-                    <form method="POST" class="needs-validation" novalidate>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="prog_acad" class="form-label">Programa Académico *</label>
-                                <input 
-                                    type="text" 
-                                    class="form-control" 
-                                    id="prog_acad" 
-                                    name="prog_acad" 
-                                    placeholder="Nombre del programa"
-                                    list="programas_list"
-                                    value="{{ prog_acad_seleccionado or '' }}"
-                                    required>
-                                <datalist id="programas_list">
-                                    {% for prog in programas %}
-                                        <option value="{{ prog.nombre }}"></option>
-                                    {% endfor %}
-                                </datalist>
-                            </div>
-                            
-                            <div class="col-md-6 mb-3">
-                                <label for="cod_periodo_destino" class="form-label">Período Destino *</label>
-                                <input 
-                                    type="text" 
-                                    class="form-control" 
-                                    id="cod_periodo_destino" 
-                                    name="cod_periodo_destino" 
-                                    placeholder="Código del período (ej: 202210)"
-                                    list="periodos_list"
-                                    value="{{ cod_periodo_destino_seleccionado or '' }}"
-                                    required>
-                                <datalist id="periodos_list">
-                                    {% for per in periodos %}
-                                        <option value="{{ per.codigo }}">{{ per.descripcion }}</option>
-                                    {% endfor %}
-                                </datalist>
-                                <div class="form-text">Período al que inscribirás los estudiantes</div>
-                            </div>
-                        </div>
-                        
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            {% if preview_data %}
-                                <button type="submit" name="action" value="preview" class="btn btn-info">Actualizar Vista Previa</button>
-                            {% else %}
-                                <button type="submit" name="action" value="preview" class="btn btn-info">Ver Vista Previa</button>
-                            {% endif %}
-                        </div>
-                    </form>
-                </div>
+                </datalist>
             </div>
-            
-            <!-- Vista previa -->
+
+            <div class="form-group">
+                <label for="cod_periodo_destino">Periodo Destino *</label>
+                <input
+                    type="text"
+                    id="cod_periodo_destino"
+                    name="cod_periodo_destino"
+                    placeholder="Codigo del periodo (ej: 202210)"
+                    list="periodos_list"
+                    value="{{ cod_periodo_destino_seleccionado or '' }}"
+                    required>
+                <datalist id="periodos_list">
+                    {% for per in periodos %}
+                        <option value="{{ per.codigo }}">{{ per.descripcion }}</option>
+                    {% endfor %}
+                </datalist>
+                <small style="color: #666; font-size: 0.85rem;">Periodo al que inscribiras los estudiantes</small>
+            </div>
+        </div>
+
+        <div class="form-buttons" style="margin-top: 1rem; justify-content: flex-end;">
             {% if preview_data %}
-                <div class="card mb-4">
-                    <div class="card-header bg-light">
-                        <h5 class="mb-0">
-                            Vista Previa
-                            <span class="badge bg-primary">{{ preview_data.total_a_inscribir }} a inscribir</span>
-                            {% if preview_data.total_excluidos > 0 %}
-                                <span class="badge bg-warning">{{ preview_data.total_excluidos }} excluidos</span>
-                            {% endif %}
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        {% if preview_data.vista_previa %}
-                            <div class="table-responsive">
-                                <table class="table table-sm table-striped">
-                                    <thead>
-                                        <tr>
-                                            <th>Código</th>
-                                            <th>Nombre Estudiante</th>
-                                            <th>Semestre Actual</th>
-                                            <th>Nuevo Semestre</th>
-                                            <th>Modalidad</th>
-                                            <th>Estado</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for est in preview_data.vista_previa %}
-                                            <tr class="{% if not est.puede_inscribir %}table-secondary{% endif %}">
-                                                <td>{{ est.cod_estudiante }}</td>
-                                                <td>{{ est.nombre }}</td>
-                                                <td>{{ est.semestre_actual }}</td>
-                                                <td>{{ est.nuevo_semestre }}</td>
-                                                <td>{{ est.modalidad }}</td>
-                                                <td>
-                                                    {% if est.puede_inscribir %}
-                                                        <span class="badge bg-success">✓ Inscribir</span>
-                                                    {% else %}
-                                                        <span class="badge bg-secondary">⚠ Excluido</span>
-                                                    {% endif %}
-                                                </td>
-                                            </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
-                            </div>
-                            
-                            <hr>
-                            
-                            <div class="row text-center">
-                                <div class="col-md-6">
-                                    <h6>A Inscribir</h6>
-                                    <p class="display-6 text-success">{{ preview_data.total_a_inscribir }}</p>
-                                </div>
-                                <div class="col-md-6">
-                                    {% if preview_data.total_excluidos > 0 %}
-                                        <h6>Excluidos (Último Semestre)</h6>
-                                        <p class="display-6 text-warning">{{ preview_data.total_excluidos }}</p>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            
-                            {% if preview_data.total_a_inscribir > 0 %}
-                                <div class="alert alert-info mt-3">
-                                    <strong>⚠ Importante:</strong> Al confirmar, se crearán {{ preview_data.total_a_inscribir }} matrículas y se generarán los cobros correspondientes en las cuentas corrientes.
-                                </div>
-                                
-                                <form method="POST" class="mt-3">
-                                    <input type="hidden" name="prog_acad" value="{{ prog_acad_seleccionado }}">
-                                    <input type="hidden" name="cod_periodo_destino" value="{{ cod_periodo_destino_seleccionado }}">
-                                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                                        <button type="submit" name="action" value="preview" class="btn btn-secondary">Cancelar</button>
-                                        <button type="submit" name="action" value="crear" class="btn btn-danger">
-                                            ✓ Confirmar Matrícula Masiva
-                                        </button>
-                                    </div>
-                                </form>
-                            {% else %}
-                                <div class="alert alert-warning mt-3">
-                                    No hay estudiantes para inscribir (todos están en el último semestre).
-                                </div>
-                            {% endif %}
-                        {% else %}
-                            <p class="text-muted">No hay datos para mostrar.</p>
-                        {% endif %}
-                    </div>
-                </div>
+                <button type="submit" name="action" value="preview" class="btn btn-primary">Actualizar Vista Previa</button>
+            {% else %}
+                <button type="submit" name="action" value="preview" class="btn btn-primary">Ver Vista Previa</button>
             {% endif %}
         </div>
-    </div>
+    </form>
 </div>
 
-<script>
-(function () {
-    'use strict';
-    window.addEventListener('load', function () {
-        var forms = document.querySelectorAll('.needs-validation');
-        Array.prototype.slice.call(forms).forEach(function (form) {
-            form.addEventListener('submit', function (event) {
-                if (!form.checkValidity()) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                }
-                form.classList.add('was-validated');
-            }, false);
-        });
-    }, false);
-})();
-</script>
+<!-- Vista previa -->
+{% if preview_data %}
+    <div class="card">
+        <h3 style="margin-bottom: 1rem;">
+            Vista Previa
+            ({{ preview_data.total_a_inscribir }} a inscribir{% if preview_data.total_excluidos > 0 %}, {{ preview_data.total_excluidos }} excluidos{% endif %})
+        </h3>
+
+        {% if preview_data.vista_previa %}
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Codigo</th>
+                            <th>Nombre Estudiante</th>
+                            <th>Semestre Actual</th>
+                            <th>Nuevo Semestre</th>
+                            <th>Modalidad</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for est in preview_data.vista_previa %}
+                            <tr>
+                                <td>{{ est.cod_estudiante }}</td>
+                                <td>{{ est.nombre }}</td>
+                                <td>{{ est.semestre_actual }}</td>
+                                <td>{{ est.nuevo_semestre }}</td>
+                                <td>{{ est.modalidad }}</td>
+                                <td>
+                                    {% if est.puede_inscribir %}
+                                        Inscribir
+                                    {% else %}
+                                        Excluido
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <hr style="margin: 1.5rem 0;">
+
+            <div style="display: flex; gap: 2rem; text-align: center;">
+                <div style="flex: 1;">
+                    <h4>A Inscribir</h4>
+                    <p style="font-size: 2rem; font-weight: bold; color: #27ae60;">{{ preview_data.total_a_inscribir }}</p>
+                </div>
+                {% if preview_data.total_excluidos > 0 %}
+                <div style="flex: 1;">
+                    <h4>Excluidos (Ultimo Semestre)</h4>
+                    <p style="font-size: 2rem; font-weight: bold; color: #f39c12;">{{ preview_data.total_excluidos }}</p>
+                </div>
+                {% endif %}
+            </div>
+
+            {% if preview_data.total_a_inscribir > 0 %}
+                <div class="alert alert-warning" style="margin-top: 1rem;">
+                    <strong>Importante:</strong> Al confirmar, se crearan {{ preview_data.total_a_inscribir }} matriculas y se generaran los cobros correspondientes en las cuentas corrientes.
+                </div>
+
+                <form method="POST" style="margin-top: 1rem;">
+                    <input type="hidden" name="prog_acad" value="{{ prog_acad_seleccionado }}">
+                    <input type="hidden" name="cod_periodo_destino" value="{{ cod_periodo_destino_seleccionado }}">
+                    <div class="form-buttons" style="justify-content: flex-end;">
+                        <button type="submit" name="action" value="preview" class="btn btn-secondary">Cancelar</button>
+                        <button type="submit" name="action" value="crear" class="btn btn-danger">Confirmar Matricula Masiva</button>
+                    </div>
+                </form>
+            {% else %}
+                <div class="alert alert-warning" style="margin-top: 1rem;">
+                    No hay estudiantes para inscribir (todos estan en el ultimo semestre).
+                </div>
+            {% endif %}
+        {% else %}
+            <p style="color: #666;">No hay datos para mostrar.</p>
+        {% endif %}
+    </div>
+{% endif %}
 {% endblock %}

@@ -2,82 +2,82 @@
 {% block titulo %}Plan de Estudio{% endblock %}
 
 {% block contenido %}
+<h2 style="margin-bottom: 1rem; color: #2c3e50;">Plan de Estudio</h2>
+
 <div class="card">
-    <h2>Seleccionar Programa</h2>
-    <form method="GET" action="/configuracion/plan-estudio" class="form-inline" style="display: flex; gap: 15px; align-items: flex-end;">
-        <div class="form-group" style="flex: 1;">
-            <label for="programa" style="font-weight: 600; color: #495057; display: block; margin-bottom: 5px;">Programa Académico</label>
-            <input type="text" id="programa" name="programa" list="lista_programas" value="{{ prog_seleccionado or '' }}" required style="width: 100%; padding: 8px; border: 1px solid #ced4da; border-radius: 4px;" placeholder="Escriba o seleccione un programa...">
+    <form method="GET" action="/configuracion/plan-estudio" class="form-inline">
+        <div class="form-group">
+            <label for="programa">Programa Academico</label>
+            <input type="text" id="programa" name="programa" list="lista_programas" value="{{ prog_seleccionado or '' }}" required placeholder="Escriba o seleccione un programa...">
             <datalist id="lista_programas">
                 {% for p in programas %}
                 <option value="{{ p.nombre }}">
                 {% endfor %}
             </datalist>
         </div>
-        <button type="submit" style="background: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: 600; height: 38px;">Buscar Plan</button>
+        <div class="form-buttons">
+            <button type="submit" class="btn btn-primary">Buscar Plan</button>
+        </div>
     </form>
 </div>
 
 {% if prog_seleccionado %}
 <div class="card">
-    <h2>Plan de Estudio: {{ prog_seleccionado }}</h2>
-    
-    <div style="margin-bottom: 20px; padding: 15px; border: 1px solid #ccc; border-radius: 5px; background: #f9f9f9;">
-        <h4>Añadir Asignatura al Plan</h4>
-        <form method="POST" action="/configuracion/plan-estudio/asignar" class="form-inline">
-            <input type="hidden" name="prog_academico" value="{{ prog_seleccionado }}">
-            <div class="form-group">
-                <label for="cod_asignatura">Asignatura</label>
-                <input type="text" id="cod_asignatura" name="cod_asignatura" list="asignaturas_list" required>
-                <datalist id="asignaturas_list">
-                    {% for a in asignaturas %}
-                    <option value="{{ a.codigo }}">{{ a.nombre }}</option>
-                    {% endfor %}
-                </datalist>
-            </div>
-            <div class="form-group">
-                <label for="semestre">Semestre</label>
-                <input type="number" id="semestre" name="semestre" min="1" max="12" required>
-            </div>
-            <div class="form-buttons">
-                <button type="submit" class="btn btn-primary">Añadir</button>
-            </div>
-        </form>
-    </div>
+    <h3 style="margin-bottom: 1rem; color: #2c3e50;">{{ prog_seleccionado }}</h3>
+
+    <form method="POST" action="/configuracion/plan-estudio/asignar" class="form-inline">
+        <input type="hidden" name="prog_academico" value="{{ prog_seleccionado }}">
+        <div class="form-group">
+            <label for="cod_asignatura">Asignatura</label>
+            <input type="text" id="cod_asignatura" name="cod_asignatura" list="asignaturas_list" required>
+            <datalist id="asignaturas_list">
+                {% for a in asignaturas %}
+                <option value="{{ a.codigo }}">{{ a.nombre }}</option>
+                {% endfor %}
+            </datalist>
+        </div>
+        <div class="form-group">
+            <label for="semestre">Semestre</label>
+            <input type="number" id="semestre" name="semestre" min="1" max="12" required>
+        </div>
+        <div class="form-buttons">
+            <button type="submit" class="btn btn-primary">Anadir</button>
+        </div>
+    </form>
 
     {% if plan_estudio %}
-        <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
-            <thead>
-                <tr style="background: #2c3e50; color: white;">
-                    <th style="padding: 12px; text-align: left; font-size: 0.9em;">SEMESTRE</th>
-                    <th style="padding: 12px; text-align: left; font-size: 0.9em;">CÓDIGO</th>
-                    <th style="padding: 12px; text-align: left; font-size: 0.9em;">NOMBRE</th>
-                    <th style="padding: 12px; text-align: left; font-size: 0.9em;">CRÉDITOS</th>
-                    <th style="padding: 12px; text-align: left; font-size: 0.9em;">TIPO</th>
-                    <th style="padding: 12px; text-align: left; font-size: 0.9em;">ACCIONES</th>
-                </tr>
-            </thead>
-            <tbody>
-        {% for a in plan_estudio %}
-            <tr style="border-bottom: 1px solid #f1f3f5;">
-                <td style="padding: 12px; font-weight: bold; color: #3498db; font-size: 0.95em;">Semestre {{ a.semestre }}</td>
-                <td style="padding: 12px; color: #495057; font-size: 0.95em;">{{ a.codigo }}</td>
-                <td style="padding: 12px; color: #495057; font-size: 0.95em;">{{ a.nombre }}</td>
-                <td style="padding: 12px; color: #495057; font-size: 0.95em;">{{ a.creditos }}</td>
-                <td style="padding: 12px; color: #495057; font-size: 0.95em;">{{ a.tipo }}</td>
-                <td style="padding: 12px; color: #495057; font-size: 0.95em;">
+    <table>
+        <thead>
+            <tr>
+                <th>Semestre</th>
+                <th>Codigo</th>
+                <th>Nombre</th>
+                <th>Creditos</th>
+                <th>Tipo</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for a in plan_estudio %}
+            <tr>
+                <td>Semestre {{ a.semestre }}</td>
+                <td>{{ a.codigo }}</td>
+                <td>{{ a.nombre }}</td>
+                <td>{{ a.creditos }}</td>
+                <td>{{ a.tipo }}</td>
+                <td>
                     <form action="/configuracion/plan-estudio/eliminar" method="POST" style="display:inline;">
                         <input type="hidden" name="prog_academico" value="{{ prog_seleccionado }}">
                         <input type="hidden" name="cod_asignatura" value="{{ a.codigo }}">
-                        <button type="submit" style="color: #e74c3c; border:none; background:none; cursor:pointer; font-weight: bold;" onclick="return confirm('¿Remover asignatura de este plan?');">Remover</button>
+                        <button type="submit" class="btn btn-danger" style="padding: 2px 8px; font-size: 0.8rem;" onclick="return confirm('Remover asignatura de este plan?');">Remover</button>
                     </form>
                 </td>
             </tr>
-        {% endfor %}
-            </tbody>
-        </table>
+            {% endfor %}
+        </tbody>
+    </table>
     {% else %}
-        <p>No hay asignaturas en el plan de estudio para este programa.</p>
+    <p style="margin-top: 1rem;">No hay asignaturas en el plan de estudio para este programa.</p>
     {% endif %}
 </div>
 {% endif %}

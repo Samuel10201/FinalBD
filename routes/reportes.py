@@ -8,29 +8,26 @@ from services.reporte_service import (
     get_reporte_ingreso_real,
     get_reporte_cartera
 )
-from models.db import get_connection
+from models.db import get_connection, close_connection
+from routes import login_required, rol_requerido
 
 reportes_bp = Blueprint('reportes', __name__)
 
 @reportes_bp.route('/estudiante/perfil')
+@login_required
 def perfil():
-    if 'usuario' not in session:
-        flash('Debes iniciar sesión primero', 'warning')
-        return redirect('/')
-    
     usuario = session['usuario']
-    
-    # Encontrar el código del estudiante asociado a este usuario
-    codigo_estudiante = None
+
     conn = get_connection()
-    with conn:
+    try:
         with conn.cursor() as cur:
-            cur.execute("SELECT codigo FROM estudiante WHERE tipo_id = %s AND id = %s", 
+            cur.execute("SELECT codigo FROM estudiante WHERE tipo_id = %s AND id = %s",
                         (usuario['tipo_id'], usuario['id']))
             res = cur.fetchone()
-            if res:
-                codigo_estudiante = res[0]
-                
+            codigo_estudiante = res['codigo'] if res else None
+    finally:
+        close_connection(conn)
+
     if not codigo_estudiante:
         flash('No se encontró información del estudiante vinculada a tu cuenta', 'error')
         return redirect('/')
@@ -44,11 +41,9 @@ def perfil():
     return render_template('estudiante/perfil.html', datos=datos)
 
 
-@reportes_bp.route('/reportes/estudiantes_programa')
+@reportes_bp.route('/reportes/estudiantes-programa')
+@rol_requerido('SUPERVISOR')
 def reporte_estudiantes():
-    if 'usuario' not in session or session['usuario']['rol'] not in ['ADMINISTRADOR', 'SUPERVISOR']:
-        flash('No tienes permisos para ver este reporte', 'error')
-        return redirect('/')
 
     periodos, programas = get_filtros_disponibles()
     periodo_sel = request.args.get('periodo')
@@ -64,11 +59,9 @@ def reporte_estudiantes():
                            resultados=resultados)
 
 
-@reportes_bp.route('/reportes/ingreso_esperado')
+@reportes_bp.route('/reportes/ingreso-esperado')
+@rol_requerido('SUPERVISOR')
 def reporte_esperado():
-    if 'usuario' not in session or session['usuario']['rol'] not in ['ADMINISTRADOR', 'SUPERVISOR']:
-        flash('No tienes permisos para ver este reporte', 'error')
-        return redirect('/')
 
     periodos, programas = get_filtros_disponibles()
     periodo_sel = request.args.get('periodo')
@@ -85,11 +78,9 @@ def reporte_esperado():
                            total=total, resultados=resultados)
 
 
-@reportes_bp.route('/reportes/pendientes_pago')
+@reportes_bp.route('/reportes/pendientes-pago')
+@rol_requerido('SUPERVISOR')
 def reporte_pendientes():
-    if 'usuario' not in session or session['usuario']['rol'] not in ['ADMINISTRADOR', 'SUPERVISOR']:
-        flash('No tienes permisos para ver este reporte', 'error')
-        return redirect('/')
 
     periodos, programas = get_filtros_disponibles()
     periodo_sel = request.args.get('periodo')
@@ -105,11 +96,9 @@ def reporte_pendientes():
                            resultados=resultados)
 
 
-@reportes_bp.route('/reportes/ingreso_real')
+@reportes_bp.route('/reportes/ingreso-real')
+@rol_requerido('SUPERVISOR')
 def reporte_real():
-    if 'usuario' not in session or session['usuario']['rol'] not in ['ADMINISTRADOR', 'SUPERVISOR']:
-        flash('No tienes permisos para ver este reporte', 'error')
-        return redirect('/')
 
     periodos, programas = get_filtros_disponibles()
     periodo_sel = request.args.get('periodo')
@@ -126,10 +115,8 @@ def reporte_real():
 
 
 @reportes_bp.route('/reportes/cartera')
+@rol_requerido('SUPERVISOR')
 def reporte_cartera():
-    if 'usuario' not in session or session['usuario']['rol'] not in ['ADMINISTRADOR', 'SUPERVISOR']:
-        flash('No tienes permisos para ver este reporte', 'error')
-        return redirect('/')
 
     periodos, programas = get_filtros_disponibles()
     periodo_sel = request.args.get('periodo')

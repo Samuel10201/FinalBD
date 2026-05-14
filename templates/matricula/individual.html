@@ -1,160 +1,104 @@
 {% extends "base.html" %}
 
-{% block title %}Matrícula Individual{% endblock %}
+{% block titulo %}Matricula Individual{% endblock %}
 
-{% block content %}
-<div class="container mt-5">
-    <div class="row">
-        <div class="col-lg-8 mx-auto">
-            <h1>Matrícula Individual</h1>
-            <p class="text-muted">Inscribe un estudiante en un programa para un período específico</p>
-            
-            <!-- Mensajes de resultado -->
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    {% for category, message in messages %}
-                        <div class="alert alert-{{ 'success' if category == 'success' else 'danger' if category == 'error' else 'warning' }} alert-dismissible fade show" role="alert">
-                            {{ message }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    {% endfor %}
-                {% endif %}
-            {% endwith %}
-            
-            <!-- Resultado exitoso -->
-            {% if resultado_exitoso %}
-                <div class="card bg-light mb-4">
-                    <div class="card-body">
-                        <h5 class="card-title">✓ Matrícula Creada Exitosamente</h5>
-                        <dl class="row">
-                            <dt class="col-sm-3">ID Matrícula:</dt>
-                            <dd class="col-sm-9"><strong>{{ resultado_exitoso.matricula_id }}</strong></dd>
-                            
-                            <dt class="col-sm-3">Estudiante:</dt>
-                            <dd class="col-sm-9">{{ resultado_exitoso.estudiante }}</dd>
-                            
-                            <dt class="col-sm-3">Programa:</dt>
-                            <dd class="col-sm-9">{{ resultado_exitoso.programa }}</dd>
-                            
-                            <dt class="col-sm-3">Período:</dt>
-                            <dd class="col-sm-9">{{ resultado_exitoso.periodo }}</dd>
-                            
-                            <dt class="col-sm-3">Modalidad:</dt>
-                            <dd class="col-sm-9">{{ resultado_exitoso.modalidad }}</dd>
-                            
-                            <dt class="col-sm-3">Semestre:</dt>
-                            <dd class="col-sm-9">{{ resultado_exitoso.semestre }}</dd>
-                            
-                            <dt class="col-sm-3">Monto Cobrado:</dt>
-                            <dd class="col-sm-9"><strong>${{ "%.2f"|format(resultado_exitoso.monto_cobrado) }}</strong></dd>
-                        </dl>
-                    </div>
-                </div>
-            {% endif %}
-            
-            <!-- Formulario -->
-            <form method="POST" class="needs-validation" novalidate>
-                <div class="mb-3">
-                    <label for="cod_estudiante" class="form-label">Estudiante *</label>
-                    <input 
-                        type="text" 
-                        class="form-control" 
-                        id="cod_estudiante" 
-                        name="cod_estudiante" 
-                        placeholder="Código o nombre del estudiante"
-                        list="estudiantes_list"
-                        required>
-                    <datalist id="estudiantes_list">
-                        {% for est in estudiantes %}
-                            <option value="{{ est.codigo }}">{{ est.nombre }}</option>
-                        {% endfor %}
-                    </datalist>
-                    <div class="form-text">Código de estudiante (ej: 00123456)</div>
-                </div>
-                
-                <div class="mb-3">
-                    <label for="prog_acad" class="form-label">Programa Académico *</label>
-                    <input 
-                        type="text" 
-                        class="form-control" 
-                        id="prog_acad" 
-                        name="prog_acad" 
-                        placeholder="Nombre del programa"
-                        list="programas_list"
-                        required>
-                    <datalist id="programas_list">
-                        {% for prog in programas %}
-                            <option value="{{ prog.nombre }}"></option>
-                        {% endfor %}
-                    </datalist>
-                </div>
-                
-                <div class="mb-3">
-                    <label for="cod_periodo" class="form-label">Período *</label>
-                    <input 
-                        type="text" 
-                        class="form-control" 
-                        id="cod_periodo" 
-                        name="cod_periodo" 
-                        placeholder="Código del período (ej: 202210)"
-                        list="periodos_list"
-                        required>
-                    <datalist id="periodos_list">
-                        {% for per in periodos %}
-                            <option value="{{ per.codigo }}">{{ per.descripcion }}</option>
-                        {% endfor %}
-                    </datalist>
-                </div>
-                
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label for="modalidad" class="form-label">Modalidad *</label>
-                        <select class="form-select" id="modalidad" name="modalidad" required>
-                            <option value="">-- Seleccione --</option>
-                            <option value="GLOBAL">Global</option>
-                            <option value="CREDITO">Por Crédito</option>
-                        </select>
-                    </div>
-                    
-                    <div class="col-md-6 mb-3">
-                        <label for="semestre" class="form-label">Semestre *</label>
-                        <input 
-                            type="number" 
-                            class="form-control" 
-                            id="semestre" 
-                            name="semestre" 
-                            min="1" 
-                            max="12"
-                            placeholder="1-12"
-                            required>
-                    </div>
-                </div>
-                
-                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                    <a href="/" class="btn btn-secondary">Cancelar</a>
-                    <button type="submit" class="btn btn-primary">Crear Matrícula</button>
-                </div>
-            </form>
-        </div>
+{% block contenido %}
+<h2 style="margin-bottom: 1rem; color: #2c3e50;">Matricula Individual</h2>
+<p style="color: #666; margin-bottom: 1rem;">Inscribe un estudiante en un programa para un periodo especifico</p>
+
+<!-- Resultado exitoso -->
+{% if resultado_exitoso %}
+    <div class="card">
+        <h3 style="margin-bottom: 1rem; color: #27ae60;">Matricula Creada Exitosamente</h3>
+        <p><strong>ID Matricula:</strong> {{ resultado_exitoso.matricula_id }}</p>
+        <p><strong>Estudiante:</strong> {{ resultado_exitoso.estudiante }}</p>
+        <p><strong>Programa:</strong> {{ resultado_exitoso.programa }}</p>
+        <p><strong>Periodo:</strong> {{ resultado_exitoso.periodo }}</p>
+        <p><strong>Modalidad:</strong> {{ resultado_exitoso.modalidad }}</p>
+        <p><strong>Semestre:</strong> {{ resultado_exitoso.semestre }}</p>
+        <p><strong>Monto Cobrado:</strong> ${{ "%.2f"|format(resultado_exitoso.monto_cobrado) }}</p>
     </div>
-</div>
+{% endif %}
 
-<script>
-// Validación HTML5
-(function () {
-    'use strict';
-    window.addEventListener('load', function () {
-        var forms = document.querySelectorAll('.needs-validation');
-        Array.prototype.slice.call(forms).forEach(function (form) {
-            form.addEventListener('submit', function (event) {
-                if (!form.checkValidity()) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                }
-                form.classList.add('was-validated');
-            }, false);
-        });
-    }, false);
-})();
-</script>
+<!-- Formulario -->
+<div class="card">
+    <form method="POST">
+        <div class="form-group">
+            <label for="cod_estudiante">Estudiante *</label>
+            <input
+                type="text"
+                id="cod_estudiante"
+                name="cod_estudiante"
+                placeholder="Codigo o nombre del estudiante"
+                list="estudiantes_list"
+                required>
+            <datalist id="estudiantes_list">
+                {% for est in estudiantes %}
+                    <option value="{{ est.codigo }}">{{ est.nombre }}</option>
+                {% endfor %}
+            </datalist>
+            <small style="color: #666; font-size: 0.85rem;">Codigo de estudiante (ej: 00123456)</small>
+        </div>
+
+        <div class="form-group">
+            <label for="prog_acad">Programa Academico *</label>
+            <input
+                type="text"
+                id="prog_acad"
+                name="prog_acad"
+                placeholder="Nombre del programa"
+                list="programas_list"
+                required>
+            <datalist id="programas_list">
+                {% for prog in programas %}
+                    <option value="{{ prog.nombre }}"></option>
+                {% endfor %}
+            </datalist>
+        </div>
+
+        <div class="form-group">
+            <label for="cod_periodo">Periodo *</label>
+            <input
+                type="text"
+                id="cod_periodo"
+                name="cod_periodo"
+                placeholder="Codigo del periodo (ej: 202210)"
+                list="periodos_list"
+                required>
+            <datalist id="periodos_list">
+                {% for per in periodos %}
+                    <option value="{{ per.codigo }}">{{ per.descripcion }}</option>
+                {% endfor %}
+            </datalist>
+        </div>
+
+        <div class="form-inline">
+            <div class="form-group">
+                <label for="modalidad">Modalidad *</label>
+                <select id="modalidad" name="modalidad" required>
+                    <option value="">-- Seleccione --</option>
+                    <option value="GLOBAL">Global</option>
+                    <option value="CREDITO">Por Credito</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="semestre">Semestre *</label>
+                <input
+                    type="number"
+                    id="semestre"
+                    name="semestre"
+                    min="1"
+                    max="12"
+                    placeholder="1-12"
+                    required>
+            </div>
+        </div>
+
+        <div class="form-buttons" style="margin-top: 1rem; justify-content: flex-end;">
+            <a href="/" class="btn btn-secondary">Cancelar</a>
+            <button type="submit" class="btn btn-primary">Crear Matricula</button>
+        </div>
+    </form>
+</div>
 {% endblock %}

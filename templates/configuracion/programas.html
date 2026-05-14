@@ -1,85 +1,151 @@
-{% extends "crud_base.html" %}
+{% extends "base.html" %}
 
-{% block titulo_formulario %}
-    {% if programa_edit %}Editar Programa{% else %}Crear Programa Académico{% endif %}
-{% endblock %}
+{% block titulo %}Gestion de Programas Academicos{% endblock %}
 
-{% block form_action %}
-    {% if programa_edit %}
-        /configuracion/programas/{{ programa_edit.nombre }}/editar
-    {% else %}
-        /configuracion/programas/crear
-    {% endif %}
-{% endblock %}
+{% block contenido %}
 
-{% block campos %}
-    {% if not programa_edit %}
-    <div class="form-group">
-        <label for="nombre">Nombre del Programa</label>
-        <input type="text" id="nombre" name="nombre" required>
+<h2 style="margin-bottom: 1rem; color: #2c3e50;">Gestion de Programas Academicos</h2>
+
+<div class="card">
+    <div class="action-tabs">
+        <a href="/configuracion/programas?tab=buscar" class="{% if tab == 'buscar' or not tab %}active{% endif %}">Buscar</a>
+        <a href="/configuracion/programas?tab=crear" class="{% if tab == 'crear' %}active{% endif %}">Crear</a>
+        <a href="/configuracion/programas?tab=actualizar" class="{% if tab == 'actualizar' %}active{% endif %}">Actualizar</a>
     </div>
-    {% else %}
-    <div class="form-group">
-        <label>Nombre del Programa</label>
-        <input type="text" value="{{ programa_edit.nombre }}" disabled>
-        <input type="hidden" name="nombre" value="{{ programa_edit.nombre }}">
-    </div>
+
+    {% if tab == 'buscar' or not tab %}
+    <form method="GET" action="/configuracion/programas" class="form-inline">
+        <input type="hidden" name="tab" value="buscar">
+        <div class="form-group">
+            <label for="facultad">Facultad</label>
+            <input type="text" id="facultad" name="facultad" value="{{ facultad_filtro or '' }}" placeholder="Nombre de la facultad">
+        </div>
+        <div class="form-group">
+            <label for="modo">Modo</label>
+            <select id="modo" name="modo">
+                <option value="">--</option>
+                <option value="PRESENCIAL" {% if modo_filtro == 'PRESENCIAL' %}selected{% endif %}>PRESENCIAL</option>
+                <option value="REMOTO" {% if modo_filtro == 'REMOTO' %}selected{% endif %}>REMOTO</option>
+            </select>
+        </div>
+        <div class="form-buttons">
+            <button type="submit" class="btn btn-primary">Buscar</button>
+            {% if facultad_filtro or modo_filtro %}
+            <a href="/configuracion/programas?tab=buscar" class="btn btn-danger">Limpiar</a>
+            {% endif %}
+        </div>
+    </form>
+
+    {% elif tab == 'crear' %}
+    <form method="POST" action="/configuracion/programas/crear" class="form-inline">
+        <div class="form-group">
+            <label for="nombre">Nombre del Programa</label>
+            <input type="text" id="nombre" name="nombre" required>
+        </div>
+        <div class="form-group">
+            <label for="facultad">Facultad</label>
+            <input type="text" id="facultad" name="facultad" list="facultades_list" required>
+            <datalist id="facultades_list">
+                {% for f in programas | map(attribute='facultad') | unique %}
+                    <option value="{{ f }}">
+                {% endfor %}
+            </datalist>
+        </div>
+        <div class="form-group">
+            <label for="modo">Modo</label>
+            <select id="modo" name="modo" required>
+                <option value="PRESENCIAL">PRESENCIAL</option>
+                <option value="REMOTO">REMOTO</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="duracion">Duracion (Semestres)</label>
+            <input type="number" id="duracion" name="duracion" min="1" max="12" required>
+        </div>
+        <div class="form-buttons">
+            <button type="submit" class="btn btn-primary">Crear Programa</button>
+        </div>
+    </form>
+
+    {% elif tab == 'actualizar' %}
+        {% if programa_edit %}
+        <form method="POST" action="/configuracion/programas/{{ programa_edit.nombre }}/editar" class="form-inline">
+            <div class="form-group">
+                <label>Nombre</label>
+                <input type="text" value="{{ programa_edit.nombre }}" disabled>
+            </div>
+            <div class="form-group">
+                <label for="facultad">Facultad</label>
+                <input type="text" id="facultad" name="facultad" list="facultades_list" value="{{ programa_edit.facultad }}" required>
+                <datalist id="facultades_list">
+                    {% for f in programas | map(attribute='facultad') | unique %}
+                        <option value="{{ f }}">
+                    {% endfor %}
+                </datalist>
+            </div>
+            <div class="form-group">
+                <label for="modo">Modo</label>
+                <select id="modo" name="modo" required>
+                    <option value="PRESENCIAL" {% if programa_edit.modo == 'PRESENCIAL' %}selected{% endif %}>PRESENCIAL</option>
+                    <option value="REMOTO" {% if programa_edit.modo == 'REMOTO' %}selected{% endif %}>REMOTO</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="duracion">Duracion (Semestres)</label>
+                <input type="number" id="duracion" name="duracion" min="1" max="12" value="{{ programa_edit.duracion }}" required>
+            </div>
+            <div class="form-buttons">
+                <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                <a href="/configuracion/programas?tab=actualizar" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+        {% else %}
+        <form method="GET" action="/configuracion/programas" class="form-inline">
+            <input type="hidden" name="tab" value="actualizar">
+            <div class="form-group">
+                <label for="nombre_cargar">Nombre del Programa</label>
+                <input type="text" id="nombre_cargar" name="nombre_cargar" list="programas_list" placeholder="Seleccione un programa" required>
+                <datalist id="programas_list">
+                    {% for p in programas %}
+                        <option value="{{ p.nombre }}">
+                    {% endfor %}
+                </datalist>
+            </div>
+            <div class="form-buttons">
+                <button type="submit" class="btn btn-primary">Cargar</button>
+            </div>
+        </form>
+        {% endif %}
     {% endif %}
-    
-    <div class="form-group">
-        <label for="facultad">Facultad</label>
-        <input type="text" id="facultad" name="facultad" list="facultades_list" value="{{ programa_edit.facultad if programa_edit else '' }}" required>
-        <datalist id="facultades_list">
-            {% for f in programas | map(attribute='facultad') | unique %}
-                <option value="{{ f }}">
+</div>
+
+<div class="card">
+    <p class="table-info">
+        Mostrando {{ programas|length }} programa{{ 's' if programas|length != 1 else '' }}
+        {%- if facultad_filtro %} en "{{ facultad_filtro }}"{% endif %}
+    </p>
+    <table>
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Facultad</th>
+                <th>Modo</th>
+                <th>Duracion</th>
+                <th>Plan</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in programas %}
+            <tr>
+                <td>{{ p.nombre }}</td>
+                <td>{{ p.facultad }}</td>
+                <td>{{ p.modo }}</td>
+                <td>{{ p.duracion }} semestres</td>
+                <td><a href="/configuracion/plan-estudio?programa={{ p.nombre }}" class="btn btn-primary" style="padding: 2px 8px; font-size: 0.8rem;">Ver Plan</a></td>
+            </tr>
             {% endfor %}
-        </datalist>
-    </div>
-    
-    <div class="form-group">
-        <label for="modo">Modo</label>
-        <select id="modo" name="modo" required>
-            <option value="PRESENCIAL" {% if programa_edit and programa_edit.modo == 'PRESENCIAL' %}selected{% endif %}>PRESENCIAL</option>
-            <option value="REMOTO" {% if programa_edit and programa_edit.modo == 'REMOTO' %}selected{% endif %}>REMOTO</option>
-        </select>
-    </div>
-    
-    <div class="form-group">
-        <label for="duracion">Duración (Semestres)</label>
-        <input type="number" id="duracion" name="duracion" min="1" max="12" value="{{ programa_edit.duracion if programa_edit else '' }}" required>
-    </div>
+        </tbody>
+    </table>
+</div>
 
-    {% if programa_edit %}
-    <div class="form-group" style="flex-basis: 100%;">
-        <a href="/configuracion/programas">Cancelar edición</a>
-    </div>
-    {% endif %}
-{% endblock %}
-
-{% block titulo_tabla %}Programas Registrados{% endblock %}
-
-{% block columnas %}
-    <th>Nombre</th>
-    <th>Facultad</th>
-    <th>Modo</th>
-    <th>Duración</th>
-    <th>Acciones</th>
-{% endblock %}
-
-{% block filas %}
-    {% for p in programas %}
-    <tr>
-        <td>{{ p.nombre }}</td>
-        <td>{{ p.facultad }}</td>
-        <td>{{ p.modo }}</td>
-        <td>{{ p.duracion }} semestres</td>
-        <td>
-            <a href="/configuracion/programas/{{ p.nombre }}/editar" class="btn btn-primary" style="padding: 2px 5px; font-size: 0.8em; text-decoration: none;">Editar</a>
-            <form action="/configuracion/programas/{{ p.nombre }}/desactivar" method="POST" style="display:inline;">
-                <button type="submit" class="btn btn-danger" style="padding: 2px 5px; font-size: 0.8em;" onclick="return confirm('¿Está seguro de querer desactivar/eliminar este programa?');">Eliminar</button>
-            </form>
-            <a href="/configuracion/plan-estudio?programa={{ p.nombre }}" class="btn btn-success" style="padding: 2px 5px; font-size: 0.8em; text-decoration: none;">Ver Plan Estudio</a>
-        </td>
-    </tr>
-    {% endfor %}
 {% endblock %}

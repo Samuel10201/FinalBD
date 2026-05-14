@@ -68,8 +68,8 @@ def individual():
                 cod_periodo=cod_periodo,
                 modalidad=modalidad,
                 semestre=semestre,
-                tipo_id_usuario=session['tipo_id'],
-                id_usuario=session['id']
+                tipo_id_usuario=session['usuario']['tipo_id'],
+                id_usuario=session['usuario']['id']
             )
             
             # Éxito
@@ -164,8 +164,8 @@ def masiva():
                 resultado = matricula_service.crear_matriculas_masivas(
                     prog_acad=prog_acad,
                     cod_periodo_destino=cod_periodo_destino,
-                    tipo_id_usuario=session['tipo_id'],
-                    id_usuario=session['id']
+                    tipo_id_usuario=session['usuario']['tipo_id'],
+                    id_usuario=session['usuario']['id']
                 )
                 
                 if resultado.get('mensaje_error'):

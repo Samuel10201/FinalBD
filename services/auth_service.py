@@ -67,7 +67,7 @@ def listar_usuarios(buscar='', limite=20, offset=0):
     try:
         with conn.cursor() as cur:
             if buscar:
-                filtro = f'%{buscar}%'
+                filtro = f'{buscar}%'
                 cur.execute(
                     "SELECT tipo_id, id, nombre, correo, rol, estado, fecha_creacion "
                     "FROM usuario WHERE nombre ILIKE %s OR correo ILIKE %s OR id ILIKE %s "

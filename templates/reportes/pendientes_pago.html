@@ -2,52 +2,69 @@
 {% block titulo %}Reporte: Pendientes de Pago{% endblock %}
 {% block contenido %}
 
-<div class="card" style="margin-bottom: 20px; padding: 20px;">
-    <form method="GET" action="/reportes/pendientes_pago">
-        <div style="display: flex; gap: 15px; align-items: flex-end;">
-            <div class="form-group" style="margin-bottom: 0; flex: 1;">
-                <label for="periodo">Periodo:</label>
-                <select name="periodo" id="periodo" required style="width: 100%; padding: 8px;">
-                    <option value="">Seleccione...</option>
-                    {% for p in periodos %}
-                        <option value="{{ p.codigo }}" {% if periodo_sel == p.codigo %}selected{% endif %}>{{ p.codigo }} - {{ p.descripcion }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="form-group" style="margin-bottom: 0; flex: 1;">
-                <label for="programa">Programa Académico:</label>
-                <select name="programa" id="programa" required style="width: 100%; padding: 8px;">
-                    <option value="">Seleccione...</option>
-                    {% for prog in programas %}
-                        <option value="{{ prog.nombre }}" {% if programa_sel == prog.nombre %}selected{% endif %}>{{ prog.nombre }}</option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div>
-                <button type="submit" class="btn btn-primary">Generar Reporte</button>
-            </div>
+<h2 style="margin-bottom: 1rem; color: #2c3e50;">Reportes</h2>
+
+<div class="card">
+    <div class="action-tabs">
+        <a href="/reportes/estudiantes-programa">Estudiantes</a>
+        <a href="/reportes/ingreso-esperado">Ingreso Esperado</a>
+        <a href="/reportes/ingreso-real">Ingreso Real</a>
+        <a href="/reportes/pendientes-pago" class="active">Pendientes</a>
+        <a href="/reportes/cartera">Cartera</a>
+    </div>
+</div>
+
+<div class="card">
+    <form method="GET" action="/reportes/pendientes-pago" class="form-inline">
+        <div class="form-group">
+            <label for="periodo">Periodo:</label>
+            <select name="periodo" id="periodo" required>
+                <option value="">Seleccione...</option>
+                {% for p in periodos %}
+                    <option value="{{ p.codigo }}" {% if periodo_sel == p.codigo %}selected{% endif %}>{{ p.codigo }} - {{ p.descripcion }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="programa">Programa Académico:</label>
+            <select name="programa" id="programa" required>
+                <option value="">Seleccione...</option>
+                {% for prog in programas %}
+                    <option value="{{ prog.nombre }}" {% if programa_sel == prog.nombre %}selected{% endif %}>{{ prog.nombre }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-buttons">
+            <button type="submit" class="btn btn-primary">Generar Reporte</button>
+            {% if periodo_sel %}<a href="/reportes/pendientes-pago" class="btn btn-danger">Limpiar</a>{% endif %}
         </div>
     </form>
 </div>
 
 {% if resultados %}
-<div class="card" style="padding: 20px;">
-    <h2>Estudiantes con saldo pendiente - {{ programa_sel }} ({{ periodo_sel }})</h2>
-    <hr>
-    <table style="width: 100%; border-collapse: collapse; margin-top: 15px;">
-        <thead style="background-color: #f4f4f4;">
+<div class="card" style="text-align: center;">
+    <h2 style="color: #555;">Estudiantes con Saldo Pendiente</h2>
+    <h1 style="color: #dc3545; font-size: 3em; margin: 10px 0;">{{ resultados|length }}</h1>
+    <p>En <strong>{{ programa_sel }}</strong> para el periodo <strong>{{ periodo_sel }}</strong></p>
+    <p style="color: #666;">Total pendiente: <strong style="color: #dc3545;">$ {{ "{:,.2f}".format(resultados|sum(attribute='saldo_pendiente')|float) }}</strong></p>
+</div>
+
+<div class="card">
+    <h2>Detalle por Estudiante</h2>
+    <table>
+        <thead>
             <tr>
-                <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Cód. Estudiante</th>
-                <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Nombre</th>
-                <th style="padding: 10px; border: 1px solid #ddd; text-align: right;">Saldo Pendiente</th>
+                <th>Cód. Estudiante</th>
+                <th>Nombre</th>
+                <th>Saldo Pendiente</th>
             </tr>
         </thead>
         <tbody>
             {% for r in resultados %}
             <tr>
-                <td style="padding: 10px; border: 1px solid #ddd;">{{ r.codigo }}</td>
-                <td style="padding: 10px; border: 1px solid #ddd;">{{ r.nombre }}</td>
-                <td style="padding: 10px; border: 1px solid #ddd; text-align: right; color: #dc3545; font-weight: bold;">
+                <td>{{ r.codigo }}</td>
+                <td>{{ r.nombre }}</td>
+                <td style="color: #dc3545; font-weight: bold;">
                     $ {{ "{:,.2f}".format(r.saldo_pendiente|float) }}
                 </td>
             </tr>

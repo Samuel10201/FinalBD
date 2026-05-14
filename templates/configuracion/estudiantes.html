@@ -3,146 +3,25 @@
 {% block titulo %}Gestion de Estudiantes{% endblock %}
 
 {% block contenido %}
-<style>
-    .tabs-container {
-        display: flex;
-        background: #f1f3f5;
-        border-radius: 4px 4px 0 0;
-        margin-bottom: 0;
-        margin-top: 20px;
-    }
-    .tab {
-        flex: 1;
-        padding: 12px;
-        text-align: center;
-        text-decoration: none;
-        color: #495057;
-        font-weight: 500;
-        border-right: 1px solid #dee2e6;
-        transition: background 0.3s;
-    }
-    .tab:last-child {
-        border-right: none;
-    }
-    .tab:hover {
-        background: #e9ecef;
-    }
-    .tab.active {
-        background: #3498db;
-        color: white;
-    }
-    .tab.active-actualizar {
-        background: #f39c12;
-        color: white;
-    }
-    .tab.active-desactivar {
-        background: #e74c3c;
-        color: white;
-    }
-    .panel-container {
-        background: white;
-        padding: 20px;
-        border-radius: 0 0 4px 4px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        margin-bottom: 20px;
-    }
-    .search-form {
-        display: flex;
-        gap: 15px;
-        align-items: flex-end;
-    }
-    .search-group {
-        display: flex;
-        flex-direction: column;
-        flex: 1;
-    }
-    .search-group label {
-        font-size: 0.9em;
-        font-weight: 600;
-        color: #495057;
-        margin-bottom: 5px;
-    }
-    .search-group input, .search-group select {
-        padding: 8px;
-        border: 1px solid #ced4da;
-        border-radius: 4px;
-    }
-    .btn-search {
-        background: #3498db;
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 4px;
-        cursor: pointer;
-        font-weight: 600;
-    }
-    .btn-action {
-        background: #f39c12;
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 4px;
-        cursor: pointer;
-        font-weight: 600;
-    }
-    .btn-danger {
-        background: #e74c3c;
-        color: white;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 4px;
-        cursor: pointer;
-        font-weight: 600;
-    }
-    
-    .results-card {
-        background: white;
-        padding: 20px;
-        border-radius: 4px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
-    .results-count {
-        color: #868e96;
-        margin-bottom: 15px;
-        font-size: 0.9em;
-    }
-    .modern-table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-    .modern-table th {
-        background: #2c3e50;
-        color: white;
-        padding: 12px;
-        text-align: left;
-        font-size: 0.9em;
-    }
-    .modern-table td {
-        padding: 12px;
-        border-bottom: 1px solid #f1f3f5;
-        color: #495057;
-        font-size: 0.95em;
-    }
-</style>
 
-<h2>Gestion de Estudiantes</h2>
+<h2 style="margin-bottom: 1rem; color: #2c3e50;">Gestion de Estudiantes</h2>
 
-<div class="tabs-container">
-    <a href="/configuracion/estudiantes?tab=buscar" class="tab {% if tab == 'buscar' or not tab %}active{% endif %}">Buscar</a>
-    <a href="/configuracion/estudiantes?tab=crear" class="tab {% if tab == 'crear' %}active{% endif %}">Crear</a>
-    <a href="/configuracion/estudiantes?tab=actualizar" class="tab {% if tab == 'actualizar' %}active-actualizar{% endif %}">Actualizar</a>
-    <a href="/configuracion/estudiantes?tab=desactivar" class="tab {% if tab == 'desactivar' %}active-desactivar{% endif %}">Desactivar</a>
-</div>
+<div class="card">
+    <div class="action-tabs">
+        <a href="/configuracion/estudiantes?tab=buscar" class="{% if tab == 'buscar' or not tab %}active{% endif %}">Buscar</a>
+        <a href="/configuracion/estudiantes?tab=crear" class="{% if tab == 'crear' %}active{% endif %}">Crear</a>
+        <a href="/configuracion/estudiantes?tab=actualizar" class="{% if tab == 'actualizar' %}active{% endif %}">Actualizar</a>
+        <a href="/configuracion/estudiantes?tab=desactivar" class="{% if tab == 'desactivar' %}active{% endif %}">Desactivar</a>
+    </div>
 
-<div class="panel-container">
     {% if tab == 'buscar' or not tab %}
-    <form class="search-form" method="GET" action="/configuracion/estudiantes">
+    <form method="GET" action="/configuracion/estudiantes" class="form-inline">
         <input type="hidden" name="tab" value="buscar">
-        <div class="search-group">
+        <div class="form-group">
             <label for="correo">Correo</label>
             <input type="text" id="correo" name="correo" value="{{ correo or '' }}" placeholder="correo@ejemplo.com">
         </div>
-        <div class="search-group">
+        <div class="form-group">
             <label for="tipo_id">Tipo ID</label>
             <select id="tipo_id" name="tipo_id">
                 <option value="">--</option>
@@ -152,144 +31,192 @@
                 <option value="PP" {% if tipo_id == 'PP' %}selected{% endif %}>PP</option>
             </select>
         </div>
-        <div class="search-group">
-            <label for="id">Identificación</label>
-            <input type="text" id="id" name="id" value="{{ id_num or '' }}" placeholder="Número de documento">
+        <div class="form-group">
+            <label for="id">Identificacion</label>
+            <input type="text" id="id" name="id" value="{{ id_num or '' }}" placeholder="Numero de documento">
         </div>
-        <button type="submit" class="btn-search">Cargar</button>
+        <div class="form-buttons">
+            <button type="submit" class="btn btn-primary">Buscar</button>
+            {% if correo or tipo_id or id_num %}
+            <a href="/configuracion/estudiantes?tab=buscar" class="btn btn-danger">Limpiar</a>
+            {% endif %}
+        </div>
     </form>
 
     {% elif tab == 'crear' %}
-    <form method="POST" action="/configuracion/estudiantes/crear" class="form-inline" style="flex-wrap: wrap;">
-        <div class="form-group" style="width: 48%;">
-            <label for="codigo">Código Estudiante</label>
-            <input type="text" id="codigo" name="codigo" pattern="^[0-9]{2,8}$" title="De 2 a 8 dígitos" required>
+    <form method="POST" action="/configuracion/estudiantes/crear" class="form-inline">
+        <div class="form-group">
+            <label for="codigo">Codigo Estudiante</label>
+            <input type="text" id="codigo" name="codigo" pattern="^[0-9]{2,8}$" title="De 2 a 8 digitos" required>
         </div>
-        <div class="form-group" style="width: 48%;">
+        <div class="form-group">
             <label for="nombre">Nombre Completo</label>
             <input type="text" id="nombre" name="nombre" required>
         </div>
-        <div class="form-group" style="width: 48%;">
+        <div class="form-group">
             <label for="fecha_nacimiento">Fecha de Nacimiento</label>
             <input type="date" id="fecha_nacimiento" name="fecha_nacimiento" required>
         </div>
-        <div class="form-group" style="width: 48%;">
-            <label for="direccion">Dirección</label>
+        <div class="form-group">
+            <label for="direccion">Direccion</label>
             <input type="text" id="direccion" name="direccion" required>
         </div>
-        <div class="form-group" style="width: 48%;">
+        <div class="form-group">
             <label for="tipo_id">Tipo ID</label>
             <select id="tipo_id" name="tipo_id" required>
                 <option value="">Seleccione...</option>
-                <option value="CC">Cédula de Ciudadanía (CC)</option>
-                <option value="TI">Tarjeta de Identidad (TI)</option>
-                <option value="CE">Cédula de Extranjería (CE)</option>
-                <option value="PP">Pasaporte (PP)</option>
+                <option value="CC">CC</option>
+                <option value="TI">TI</option>
+                <option value="CE">CE</option>
+                <option value="PP">PP</option>
             </select>
         </div>
-        <div class="form-group" style="width: 48%;">
-            <label for="id">Número de ID</label>
+        <div class="form-group">
+            <label for="id">Numero de ID</label>
             <input type="text" id="id" name="id" required>
         </div>
-        <div class="form-group" style="width: 48%;">
-            <label for="correo">Correo Electrónico</label>
+        <div class="form-group">
+            <label for="correo">Correo Electronico</label>
             <input type="email" id="correo" name="correo" required>
         </div>
-        <div class="form-group" style="width: 48%;">
-            <label for="contrasena">Contraseña</label>
+        <div class="form-group">
+            <label for="contrasena">Contrasena</label>
             <input type="password" id="contrasena" name="contrasena" required>
         </div>
-        <div class="form-buttons" style="width: 100%; margin-top: 15px;">
-            <button type="submit" class="btn-search">Crear Estudiante</button>
+        <div class="form-buttons">
+            <button type="submit" class="btn btn-primary">Crear Estudiante</button>
         </div>
     </form>
 
     {% elif tab == 'actualizar' %}
-    {% if not estudiante_edit %}
-    <form class="search-form" method="GET" action="/configuracion/estudiantes">
-        <input type="hidden" name="tab" value="actualizar">
-        <div class="search-group">
-            <label for="codigo_cargar">Ingrese el Código del Estudiante a actualizar</label>
-            <input type="text" id="codigo_cargar" name="codigo_cargar" placeholder="Ej: 200001" required>
-        </div>
-        <button type="submit" class="btn-action">Cargar Estudiante</button>
-    </form>
-    {% else %}
-    <form method="POST" action="/configuracion/estudiantes/{{ estudiante_edit.codigo }}/editar" class="form-inline">
-        <div class="form-group">
-            <label for="nombre">Nombre Completo</label>
-            <input type="text" id="nombre" name="nombre" value="{{ estudiante_edit.nombre }}" required>
-        </div>
-        <div class="form-group">
-            <label for="fecha_nacimiento">Fecha Nacimiento</label>
-            <input type="date" id="fecha_nacimiento" name="fecha_nacimiento" value="{{ estudiante_edit.fecha_nacimiento }}" required>
-        </div>
-        <div class="form-group">
-            <label for="direccion">Dirección</label>
-            <input type="text" id="direccion" name="direccion" value="{{ estudiante_edit.direccion }}" required>
-        </div>
-        <div class="form-group">
-            <label for="estado">Estado</label>
-            <select id="estado" name="estado" required>
-                <option value="ACTIVO" {% if estudiante_edit.estado == 'ACTIVO' %}selected{% endif %}>ACTIVO</option>
-                <option value="INACTIVO" {% if estudiante_edit.estado == 'INACTIVO' %}selected{% endif %}>INACTIVO</option>
-            </select>
-        </div>
-        <div class="form-buttons" style="width: 100%; display: flex; gap: 10px; margin-top: 15px;">
-            <button type="submit" class="btn-action">Guardar Cambios</button>
-            <a href="/configuracion/estudiantes?tab=actualizar" class="btn btn-secondary" style="padding: 10px;">Cancelar</a>
-        </div>
-    </form>
-    {% endif %}
+        {% if estudiante_edit %}
+        <form method="POST" action="/configuracion/estudiantes/{{ estudiante_edit.codigo }}/editar" class="form-inline">
+            <div class="form-group">
+                <label>Codigo</label>
+                <input type="text" value="{{ estudiante_edit.codigo }}" disabled>
+            </div>
+            <div class="form-group">
+                <label for="nombre">Nombre Completo</label>
+                <input type="text" id="nombre" name="nombre" value="{{ estudiante_edit.nombre }}" required>
+            </div>
+            <div class="form-group">
+                <label for="fecha_nacimiento">Fecha Nacimiento</label>
+                <input type="date" id="fecha_nacimiento" name="fecha_nacimiento" value="{{ estudiante_edit.fecha_nacimiento }}" required>
+            </div>
+            <div class="form-group">
+                <label for="direccion">Direccion</label>
+                <input type="text" id="direccion" name="direccion" value="{{ estudiante_edit.direccion }}" required>
+            </div>
+            <div class="form-group">
+                <label for="estado">Estado</label>
+                <select id="estado" name="estado" required>
+                    <option value="ACTIVO" {% if estudiante_edit.estado == 'ACTIVO' %}selected{% endif %}>ACTIVO</option>
+                    <option value="INACTIVO" {% if estudiante_edit.estado == 'INACTIVO' %}selected{% endif %}>INACTIVO</option>
+                </select>
+            </div>
+            <div class="form-buttons">
+                <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                <a href="/configuracion/estudiantes?tab=actualizar" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+        {% else %}
+        <form method="GET" action="/configuracion/estudiantes" class="form-inline">
+            <input type="hidden" name="tab" value="actualizar">
+            <div class="form-group">
+                <label for="codigo_cargar">Codigo del Estudiante</label>
+                <input type="text" id="codigo_cargar" name="codigo_cargar" placeholder="Ej: 200001" required>
+            </div>
+            <div class="form-buttons">
+                <button type="submit" class="btn btn-primary">Cargar</button>
+            </div>
+        </form>
+        {% endif %}
 
     {% elif tab == 'desactivar' %}
-    <form method="POST" action="" id="form-desactivar" class="search-form" onsubmit="event.preventDefault(); document.getElementById('form-desactivar').action='/configuracion/estudiantes/' + document.getElementById('codigo_desactivar').value + '/desactivar'; document.getElementById('form-desactivar').submit();">
-        <div class="search-group">
-            <label for="codigo_desactivar">Ingrese el Código del Estudiante a desactivar</label>
-            <input type="text" id="codigo_desactivar" name="codigo_desactivar" placeholder="Ej: 200001" required>
+        {% if estudiante_desactivar %}
+        <div class="form-inline" style="align-items: center">
+            <div class="form-group">
+                <label>Estudiante</label>
+                <input type="text" value="{{ estudiante_desactivar.nombre }}" disabled>
+            </div>
+            <div class="form-group">
+                <label>Codigo</label>
+                <input type="text" value="{{ estudiante_desactivar.codigo }}" disabled>
+            </div>
+            <div class="form-group">
+                <label>Estado</label>
+                <input type="text" value="{{ estudiante_desactivar.estado }}" disabled>
+            </div>
+            <div class="form-buttons">
+                {% if estudiante_desactivar.estado == 'ACTIVO' %}
+                <form method="POST" action="/configuracion/estudiantes/{{ estudiante_desactivar.codigo }}/desactivar">
+                    <button type="submit" class="btn btn-danger">Confirmar</button>
+                </form>
+                {% else %}
+                <span class="btn btn-success" style="cursor: default">Ya inactivo</span>
+                {% endif %}
+            </div>
         </div>
-        <button type="submit" class="btn-danger" onclick="return confirm('¿Está seguro que desea desactivar al estudiante indicado?');">Desactivar Estudiante</button>
-    </form>
+        {% else %}
+        <form method="GET" action="/configuracion/estudiantes" class="form-inline">
+            <input type="hidden" name="tab" value="desactivar">
+            <div class="form-group">
+                <label for="codigo_desactivar">Codigo del Estudiante</label>
+                <input type="text" id="codigo_desactivar" name="codigo_desactivar" placeholder="Ej: 200001" required>
+            </div>
+            <div class="form-buttons">
+                <button type="submit" class="btn btn-primary">Cargar</button>
+            </div>
+        </form>
+        {% endif %}
     {% endif %}
 </div>
 
-<div class="results-card">
-    <div class="results-count">Mostrando {{ estudiantes|length }} resultados (La base de datos se evidencia en todo momento)</div>
-    <table class="modern-table">
+<div class="card">
+    <p class="table-info">
+        Mostrando {{ estudiantes|length }} resultado{{ 's' if estudiantes|length != 1 else '' }}
+        {%- if correo %} para "{{ correo }}"{% endif %}
+        {%- if pagina > 1 %} (pagina {{ pagina }}){% endif %}
+    </p>
+    <table>
         <thead>
             <tr>
-                <th>CÓDIGO</th>
-                <th>TIPO ID</th>
+                <th>Codigo</th>
+                <th>Tipo ID</th>
                 <th>ID</th>
-                <th>NOMBRE</th>
-                <th>CORREO</th>
-                <th>ROL</th>
-                <th>ESTADO</th>
+                <th>Nombre</th>
+                <th>Correo</th>
+                <th>Rol</th>
+                <th>Estado</th>
             </tr>
         </thead>
         <tbody>
             {% for e in estudiantes %}
             <tr>
-                <td style="font-weight: bold; color: #3498db;">{{ e.codigo }}</td>
+                <td>{{ e.codigo }}</td>
                 <td>{{ e.tipo_id }}</td>
                 <td>{{ e.id }}</td>
                 <td>{{ e.nombre }}</td>
-                <td>{{ e.correo }}</td>
+                <td class="truncate" title="{{ e.correo }}">{{ e.correo }}</td>
                 <td>ESTUDIANTE</td>
-                <td>
-                    <span style="padding: 3px 8px; border-radius: 12px; font-size: 0.8em; {% if e.estado == 'ACTIVO' %}background: #d4edda; color: #155724;{% else %}background: #f8d7da; color: #721c24;{% endif %}">
-                        {{ e.estado }}
-                    </span>
-                </td>
+                <td>{{ e.estado }}</td>
             </tr>
             {% endfor %}
-            {% if not estudiantes %}
-            <tr>
-                <td colspan="7" style="text-align: center; padding: 20px;">No se encontraron estudiantes</td>
-            </tr>
-            {% endif %}
         </tbody>
     </table>
+    <div class="paginacion">
+        {% if pagina > 1 %}
+        <a href="/configuracion/estudiantes?tab={{ tab }}&pagina={{ pagina - 1 }}{% if correo %}&correo={{ correo }}{% endif %}{% if tipo_id %}&tipo_id={{ tipo_id }}{% endif %}{% if id_num %}&id={{ id_num }}{% endif %}">&larr; Anterior</a>
+        {% else %}
+        <span></span>
+        {% endif %}
+        <span>Pagina {{ pagina }}</span>
+        {% if estudiantes|length == 20 %}
+        <a href="/configuracion/estudiantes?tab={{ tab }}&pagina={{ pagina + 1 }}{% if correo %}&correo={{ correo }}{% endif %}{% if tipo_id %}&tipo_id={{ tipo_id }}{% endif %}{% if id_num %}&id={{ id_num }}{% endif %}">Siguiente &rarr;</a>
+        {% else %}
+        <span></span>
+        {% endif %}
+    </div>
 </div>
 
 {% endblock %}

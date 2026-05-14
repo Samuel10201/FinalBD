@@ -158,7 +158,7 @@ def crear_matricula_individual(cod_estudiante, prog_acad, cod_periodo, modalidad
                 est = cur.fetchone()
                 if not est:
                     raise EstudianteNoExisteException(f"Estudiante {cod_estudiante} no existe o está inactivo")
-                nombre_est = est[0]
+                nombre_est = est['nombre']
                 
                 # 2. Verificar que programa existe
                 cur.execute(
@@ -168,7 +168,7 @@ def crear_matricula_individual(cod_estudiante, prog_acad, cod_periodo, modalidad
                 prog = cur.fetchone()
                 if not prog:
                     raise ProgramaNoExisteException(f"Programa '{prog_acad}' no existe")
-                duracion = prog[0]
+                duracion = prog['duracion']
                 
                 # 3. Verificar que período existe y está ACTIVO
                 cur.execute(
@@ -204,7 +204,7 @@ def crear_matricula_individual(cod_estudiante, prog_acad, cod_periodo, modalidad
                     raise CostoNoDefinidoException(
                         f"No hay costo definido para {prog_acad} en período {cod_periodo}"
                     )
-                costo_global, costo_credito = Decimal(costo[0]), Decimal(costo[1])
+                costo_global, costo_credito = Decimal(str(costo['costo_global'])), Decimal(str(costo['costo_credito']))
                 
                 # 7. Calcular monto a cobrar
                 if modalidad == 'GLOBAL':
@@ -219,7 +219,7 @@ def crear_matricula_individual(cod_estudiante, prog_acad, cod_periodo, modalidad
                         (prog_acad, semestre)
                     )
                     total_creditos_row = cur.fetchone()
-                    total_creditos = total_creditos_row[0] if total_creditos_row[0] else 0
+                    total_creditos = total_creditos_row['sum'] if total_creditos_row['sum'] else 0
                     monto_cobro = Decimal(total_creditos) * costo_credito
                     codigo_servicio = 'PCRE'
                 else:
@@ -243,7 +243,7 @@ def crear_matricula_individual(cod_estudiante, prog_acad, cod_periodo, modalidad
                        RETURNING id""",
                     (modalidad, semestre, cod_estudiante, cod_periodo, prog_acad)
                 )
-                matricula_id = cur.fetchone()[0]
+                matricula_id = cur.fetchone()['id']
                 
                 # 10. INSERT en cuenta_corriente (cobro)
                 descripcion = f"Matrícula {prog_acad} - Período {cod_periodo} - {modalidad}"
@@ -307,8 +307,8 @@ def obtener_estudiantes_para_masiva(prog_acad, cod_periodo_destino):
             if not prog:
                 return {'vista_previa': [], 'total_a_inscribir': 0, 'total_excluidos': 0,
                         'mensaje': f"Programa '{prog_acad}' no existe"}
-            duracion = prog[0]
-            
+            duracion = prog['duracion']
+
             # Encontrar el período anterior (más reciente)
             # Esto es complejo porque necesitamos deducir el período anterior
             # Estrategia: buscar el período más reciente (antes del destino) con matrículas en el programa
@@ -323,8 +323,8 @@ def obtener_estudiantes_para_masiva(prog_acad, cod_periodo_destino):
             if not periodo_anterior:
                 return {'vista_previa': [], 'total_a_inscribir': 0, 'total_excluidos': 0,
                         'mensaje': f"No hay estudiantes del programa {prog_acad} en períodos anteriores"}
-            periodo_anterior = periodo_anterior[0]
-            
+            periodo_anterior = periodo_anterior['cod_periodo']
+
             # Obtener estudiantes activos con matrícula en programa y periodo anterior
             cur.execute(
                 """SELECT DISTINCT m.cod_estudiante, e.nombre, m.semestre, m.modalidad
@@ -336,12 +336,12 @@ def obtener_estudiantes_para_masiva(prog_acad, cod_periodo_destino):
             )
             estudiantes = [
                 {
-                    'cod_estudiante': row[0],
-                    'nombre': row[1],
-                    'semestre_actual': row[2],
-                    'nuevo_semestre': row[2] + 1,
-                    'modalidad': row[3],
-                    'puede_inscribir': row[2] < duracion  # Excluir si está en último semestre
+                    'cod_estudiante': row['cod_estudiante'],
+                    'nombre': row['nombre'],
+                    'semestre_actual': row['semestre'],
+                    'nuevo_semestre': row['semestre'] + 1,
+                    'modalidad': row['modalidad'],
+                    'puede_inscribir': row['semestre'] < duracion
                 }
                 for row in cur.fetchall()
             ]

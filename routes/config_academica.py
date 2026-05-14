@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, flash, url_for
+from routes import login_required, rol_requerido
 import services.config_academica_service as srv
 
 config_academica_bp = Blueprint('config_academica', __name__)
@@ -7,29 +8,42 @@ config_academica_bp = Blueprint('config_academica', __name__)
 # --- Estudiantes ---
 
 @config_academica_bp.route('/configuracion/estudiantes')
+@rol_requerido('SUPERVISOR')
 def listar_estudiantes():
     """Muestra lista de estudiantes con opciones de CRUD y busqueda."""
     correo = request.args.get('correo')
     tipo_id = request.args.get('tipo_id')
     id_num = request.args.get('id')
     tab = request.args.get('tab', 'buscar')
-    
+    pagina = int(request.args.get('pagina', 1))
+
     codigo_cargar = request.args.get('codigo_cargar')
     estudiante_edit = None
     if codigo_cargar and tab == 'actualizar':
         estudiante_edit = srv.obtener_estudiante(codigo_cargar)
         if not estudiante_edit:
             flash(f'Estudiante con código {codigo_cargar} no encontrado.', 'error')
-    
-    estudiantes = srv.listar_estudiantes(correo, tipo_id, id_num, limit=20)
-    return render_template('configuracion/estudiantes.html', 
-                           estudiantes=estudiantes, 
+
+    # Desactivar: cargar estudiante para confirmar
+    codigo_desactivar = request.args.get('codigo_desactivar')
+    estudiante_desactivar = None
+    if codigo_desactivar and tab == 'desactivar':
+        estudiante_desactivar = srv.obtener_estudiante(codigo_desactivar)
+        if not estudiante_desactivar:
+            flash(f'Estudiante con código {codigo_desactivar} no encontrado.', 'error')
+
+    estudiantes = srv.listar_estudiantes(correo, tipo_id, id_num, limit=20, offset=(pagina - 1) * 20)
+    return render_template('configuracion/estudiantes.html',
+                           estudiantes=estudiantes,
                            tab=tab,
+                           pagina=pagina,
                            estudiante_edit=estudiante_edit,
+                           estudiante_desactivar=estudiante_desactivar,
                            correo=correo, tipo_id=tipo_id, id_num=id_num)
 
 
 @config_academica_bp.route('/configuracion/estudiantes/crear', methods=['GET', 'POST'])
+@rol_requerido('SUPERVISOR')
 def crear_estudiante():
     """GET: formulario. POST: crea usuario + estudiante + cuenta corriente (transaccion)."""
     if request.method == 'POST':
@@ -54,6 +68,7 @@ def crear_estudiante():
 
 
 @config_academica_bp.route('/configuracion/estudiantes/<codigo>/editar', methods=['GET', 'POST'])
+@rol_requerido('SUPERVISOR')
 def editar_estudiante(codigo):
     """GET: formulario con datos actuales. POST: actualiza el estudiante."""
     if request.method == 'POST':
@@ -70,12 +85,11 @@ def editar_estudiante(codigo):
             
         return redirect(url_for('config_academica.listar_estudiantes'))
         
-    estudiante = srv.obtener_estudiante(codigo)
-    estudiantes = srv.listar_estudiantes()
-    return render_template('configuracion/estudiantes.html', estudiantes=estudiantes, estudiante_edit=estudiante)
+    return redirect(url_for('config_academica.listar_estudiantes', tab='actualizar', codigo_cargar=codigo))
 
 
 @config_academica_bp.route('/configuracion/estudiantes/<codigo>/desactivar', methods=['POST'])
+@rol_requerido('SUPERVISOR')
 def desactivar_estudiante(codigo):
     """Desactiva estudiante y su usuario (estado = INACTIVO)."""
     try:
@@ -89,13 +103,31 @@ def desactivar_estudiante(codigo):
 # --- Programas Academicos ---
 
 @config_academica_bp.route('/configuracion/programas')
+@rol_requerido('SUPERVISOR')
 def listar_programas():
-    """Muestra lista de programas academicos."""
-    programas = srv.listar_programas()
-    return render_template('configuracion/programas.html', programas=programas)
+    """Muestra lista de programas academicos con tabs y filtros."""
+    tab = request.args.get('tab', 'buscar')
+    facultad_filtro = request.args.get('facultad')
+    modo_filtro = request.args.get('modo')
+
+    nombre_cargar = request.args.get('nombre_cargar')
+    programa_edit = None
+    if nombre_cargar and tab == 'actualizar':
+        programa_edit = srv.obtener_programa(nombre_cargar)
+        if not programa_edit:
+            flash(f'Programa "{nombre_cargar}" no encontrado.', 'error')
+
+    programas = srv.listar_programas(facultad=facultad_filtro, modo=modo_filtro)
+    return render_template('configuracion/programas.html',
+                           programas=programas,
+                           tab=tab,
+                           programa_edit=programa_edit,
+                           facultad_filtro=facultad_filtro,
+                           modo_filtro=modo_filtro)
 
 
 @config_academica_bp.route('/configuracion/programas/crear', methods=['GET', 'POST'])
+@rol_requerido('SUPERVISOR')
 def crear_programa():
     """GET: formulario. POST: crea el programa academico."""
     if request.method == 'POST':
@@ -115,6 +147,7 @@ def crear_programa():
 
 
 @config_academica_bp.route('/configuracion/programas/<nombre>/editar', methods=['GET', 'POST'])
+@rol_requerido('SUPERVISOR')
 def editar_programa(nombre):
     """GET: formulario con datos actuales. POST: actualiza el programa."""
     if request.method == 'POST':
@@ -130,12 +163,11 @@ def editar_programa(nombre):
             
         return redirect(url_for('config_academica.listar_programas'))
         
-    programa = srv.obtener_programa(nombre)
-    programas = srv.listar_programas()
-    return render_template('configuracion/programas.html', programas=programas, programa_edit=programa)
+    return redirect(url_for('config_academica.listar_programas', tab='actualizar', nombre_cargar=nombre))
 
 
 @config_academica_bp.route('/configuracion/programas/<nombre>/desactivar', methods=['POST'])
+@rol_requerido('SUPERVISOR')
 def desactivar_programa(nombre):
     """Desactiva el programa academico (estado = INACTIVO)."""
     flash('El esquema de base de datos actual no soporta desactivar o eliminar un programa.', 'warning')
@@ -145,31 +177,44 @@ def desactivar_programa(nombre):
 # --- Asignaturas ---
 
 @config_academica_bp.route('/configuracion/asignaturas')
+@rol_requerido('SUPERVISOR')
 def listar_asignaturas():
     """Muestra lista de asignaturas con opciones de CRUD y busqueda."""
     codigo = request.args.get('codigo')
     nombre = request.args.get('nombre')
     tipo = request.args.get('tipo')
     tab = request.args.get('tab', 'buscar')
-    
+    pagina = int(request.args.get('pagina', 1))
+
     codigo_cargar = request.args.get('codigo_cargar')
     asignatura_edit = None
     if codigo_cargar and tab == 'actualizar':
         asignatura_edit = srv.obtener_asignatura(codigo_cargar)
         if not asignatura_edit:
             flash(f'Asignatura con código {codigo_cargar} no encontrada.', 'error')
-            
-    asignaturas = srv.listar_asignaturas(codigo, nombre, tipo, limit=20)
+
+    # Eliminar: cargar asignatura para confirmar
+    codigo_eliminar = request.args.get('codigo_eliminar')
+    asignatura_eliminar = None
+    if codigo_eliminar and tab == 'eliminar':
+        asignatura_eliminar = srv.obtener_asignatura(codigo_eliminar)
+        if not asignatura_eliminar:
+            flash(f'Asignatura con código {codigo_eliminar} no encontrada.', 'error')
+
+    asignaturas = srv.listar_asignaturas(codigo, nombre, tipo, limit=20, offset=(pagina - 1) * 20)
     programas = srv.listar_programas()
-    return render_template('configuracion/asignaturas.html', 
-                           asignaturas=asignaturas, 
+    return render_template('configuracion/asignaturas.html',
+                           asignaturas=asignaturas,
                            programas=programas,
                            tab=tab,
+                           pagina=pagina,
                            asignatura_edit=asignatura_edit,
+                           asignatura_eliminar=asignatura_eliminar,
                            codigo_filtro=codigo, nombre_filtro=nombre, tipo_filtro=tipo)
 
 
 @config_academica_bp.route('/configuracion/asignaturas/crear', methods=['GET', 'POST'])
+@rol_requerido('SUPERVISOR')
 def crear_asignatura():
     """GET: formulario con datalist de programas. POST: crea asignatura y la asigna a plan de estudio."""
     if request.method == 'POST':
@@ -192,6 +237,7 @@ def crear_asignatura():
 
 
 @config_academica_bp.route('/configuracion/asignaturas/<codigo>/editar', methods=['GET', 'POST'])
+@rol_requerido('SUPERVISOR')
 def editar_asignatura(codigo):
     """GET: formulario con datos actuales. POST: actualiza la asignatura."""
     if request.method == 'POST':
@@ -208,13 +254,11 @@ def editar_asignatura(codigo):
             
         return redirect(url_for('config_academica.listar_asignaturas'))
         
-    asignatura = srv.obtener_asignatura(codigo)
-    asignaturas = srv.listar_asignaturas()
-    programas = srv.listar_programas()
-    return render_template('configuracion/asignaturas.html', asignaturas=asignaturas, asignatura_edit=asignatura, programas=programas)
+    return redirect(url_for('config_academica.listar_asignaturas', tab='actualizar', codigo_cargar=codigo))
 
 
 @config_academica_bp.route('/configuracion/asignaturas/<codigo>/eliminar', methods=['POST'])
+@rol_requerido('SUPERVISOR')
 def eliminar_asignatura(codigo):
     """Elimina la asignatura y la remueve de todos los planes de estudio."""
     try:
@@ -228,17 +272,18 @@ def eliminar_asignatura(codigo):
 # --- Plan de Estudio ---
 
 @config_academica_bp.route('/configuracion/plan-estudio')
+@rol_requerido('SUPERVISOR')
 def listar_plan_estudio():
     """Muestra plan de estudio: programa > semestre > asignaturas con creditos."""
     programas = srv.listar_programas()
     prog_seleccionado = request.args.get('programa')
-    
+
     plan_estudio = []
     asignaturas_disp = []
-    
+
     if prog_seleccionado:
         plan_estudio = srv.listar_plan_estudio(prog_seleccionado)
-        asignaturas_disp = srv.listar_asignaturas()
+        asignaturas_disp = srv.listar_asignaturas(limit=500)
         
     return render_template('configuracion/plan_estudio.html', 
                            programas=programas, 
@@ -248,6 +293,7 @@ def listar_plan_estudio():
 
 
 @config_academica_bp.route('/configuracion/plan-estudio/asignar', methods=['POST'])
+@rol_requerido('SUPERVISOR')
 def asignar_asignatura_plan():
     """Asigna una asignatura existente a un programa con su semestre."""
     try:
@@ -264,6 +310,7 @@ def asignar_asignatura_plan():
 
 
 @config_academica_bp.route('/configuracion/plan-estudio/eliminar', methods=['POST'])
+@rol_requerido('SUPERVISOR')
 def eliminar_asignatura_plan():
     """Remueve una asignatura de un plan de estudio especifico."""
     try:
