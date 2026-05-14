@@ -29,7 +29,7 @@ def perfil():
                         (usuario['tipo_id'], usuario['id']))
             res = cur.fetchone()
             if res:
-                codigo_estudiante = res[0]
+                codigo_estudiante = res['codigo']
                 
     if not codigo_estudiante:
         flash('No se encontró información del estudiante vinculada a tu cuenta', 'error')
