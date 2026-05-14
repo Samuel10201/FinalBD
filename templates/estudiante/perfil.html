@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% block titulo %}Mi Perfil y Plan de Estudio{% endblock %}
+{% block contenido %}
+
+<div class="card" style="margin-bottom: 20px; padding: 20px;">
+    <h2>Datos Personales</h2>
+    <hr>
+    <p><strong>Código:</strong> {{ datos.estudiante.codigo }}</p>
+    <p><strong>Nombre:</strong> {{ datos.estudiante.nombre }}</p>
+    <p><strong>Estado:</strong> {{ datos.estudiante.estado }}</p>
+    <p><strong>Fecha Nacimiento:</strong> {{ datos.estudiante.fecha_nacimiento }}</p>
+    <p><strong>Dirección:</strong> {{ datos.estudiante.direccion }}</p>
+</div>
+
+{% if datos.matricula %}
+<div class="card" style="margin-bottom: 20px; padding: 20px;">
+    <h2>Matrícula Actual</h2>
+    <hr>
+    <p><strong>Programa Académico:</strong> {{ datos.matricula.prog_acad }}</p>
+    <p><strong>Semestre en curso:</strong> {{ datos.matricula.semestre }}</p>
+    <p><strong>Modalidad de Cobro:</strong> {{ datos.matricula.modalidad }}</p>
+    <p><strong>Periodo:</strong> {{ datos.matricula.desc_periodo }} ({{ datos.matricula.cod_periodo }})</p>
+</div>
+
+<div class="card" style="padding: 20px;">
+    <h2>Plan de Estudio: {{ datos.matricula.prog_acad }}</h2>
+    <hr>
+    {% if datos.plan_estudio %}
+        {% for semestre_data in datos.plan_estudio %}
+            <h3 style="margin-top: 15px; color: #0056b3;">Semestre {{ semestre_data.semestre }}</h3>
+            <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px;">
+                <thead style="background-color: #f4f4f4;">
+                    <tr>
+                        <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Código</th>
+                        <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Asignatura</th>
+                        <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Créditos</th>
+                        <th style="padding: 10px; border: 1px solid #ddd; text-align: left;">Tipo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for mat in semestre_data.materias %}
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #ddd;">{{ mat.codigo }}</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">{{ mat.nombre }}</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">{{ mat.creditos }}</td>
+                        <td style="padding: 10px; border: 1px solid #ddd;">{{ mat.tipo }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endfor %}
+    {% else %}
+        <div class="alert alert-warning">No hay asignaturas registradas en el plan de estudio para este programa.</div>
+    {% endif %}
+</div>
+{% else %}
+<div class="card" style="margin-bottom: 20px; padding: 20px;">
+    <h2>Matrícula Actual</h2>
+    <div class="alert alert-warning">No tienes una matrícula registrada actualmente.</div>
+</div>
+{% endif %}
+
+{% endblock %}
