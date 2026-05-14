@@ -1,0 +1,292 @@
+{% extends "base.html" %}
+
+{% block titulo %}Gestion de Asignaturas{% endblock %}
+
+{% block contenido %}
+<style>
+    .tabs-container {
+        display: flex;
+        background: #f1f3f5;
+        border-radius: 4px 4px 0 0;
+        margin-bottom: 0;
+        margin-top: 20px;
+    }
+    .tab {
+        flex: 1;
+        padding: 12px;
+        text-align: center;
+        text-decoration: none;
+        color: #495057;
+        font-weight: 500;
+        border-right: 1px solid #dee2e6;
+        transition: background 0.3s;
+    }
+    .tab:last-child {
+        border-right: none;
+    }
+    .tab:hover {
+        background: #e9ecef;
+    }
+    .tab.active {
+        background: #3498db;
+        color: white;
+    }
+    .tab.active-actualizar {
+        background: #f39c12;
+        color: white;
+    }
+    .tab.active-desactivar {
+        background: #e74c3c;
+        color: white;
+    }
+    .panel-container {
+        background: white;
+        padding: 20px;
+        border-radius: 0 0 4px 4px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+    .search-form {
+        display: flex;
+        gap: 15px;
+        align-items: flex-end;
+    }
+    .search-group {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+    }
+    .search-group label {
+        font-size: 0.9em;
+        font-weight: 600;
+        color: #495057;
+        margin-bottom: 5px;
+    }
+    .search-group input, .search-group select {
+        padding: 8px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+    }
+    .btn-search {
+        background: #3498db;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 600;
+    }
+    .btn-action {
+        background: #f39c12;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 600;
+    }
+    .btn-danger {
+        background: #e74c3c;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: 600;
+    }
+    
+    .results-card {
+        background: white;
+        padding: 20px;
+        border-radius: 4px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .results-count {
+        color: #868e96;
+        margin-bottom: 15px;
+        font-size: 0.9em;
+    }
+    .modern-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .modern-table th {
+        background: #2c3e50;
+        color: white;
+        padding: 12px;
+        text-align: left;
+        font-size: 0.9em;
+    }
+    .modern-table td {
+        padding: 12px;
+        border-bottom: 1px solid #f1f3f5;
+        color: #495057;
+        font-size: 0.95em;
+    }
+</style>
+
+<h2>Gestion de Asignaturas</h2>
+
+<div class="tabs-container">
+    <a href="/configuracion/asignaturas?tab=buscar" class="tab {% if tab == 'buscar' or not tab %}active{% endif %}">Buscar</a>
+    <a href="/configuracion/asignaturas?tab=crear" class="tab {% if tab == 'crear' %}active{% endif %}">Crear</a>
+    <a href="/configuracion/asignaturas?tab=actualizar" class="tab {% if tab == 'actualizar' %}active-actualizar{% endif %}">Actualizar</a>
+    <a href="/configuracion/asignaturas?tab=eliminar" class="tab {% if tab == 'eliminar' %}active-desactivar{% endif %}">Eliminar</a>
+</div>
+
+<div class="panel-container">
+    {% if tab == 'buscar' or not tab %}
+    <form class="search-form" method="GET" action="/configuracion/asignaturas">
+        <input type="hidden" name="tab" value="buscar">
+        <div class="search-group">
+            <label for="codigo">Código Asignatura</label>
+            <input type="text" id="codigo" name="codigo" value="{{ codigo_filtro or '' }}" placeholder="Ej: MAT101">
+        </div>
+        <div class="search-group">
+            <label for="nombre">Nombre</label>
+            <input type="text" id="nombre" name="nombre" value="{{ nombre_filtro or '' }}" placeholder="Ej: Calculo">
+        </div>
+        <div class="search-group">
+            <label for="tipo">Tipo</label>
+            <select id="tipo" name="tipo">
+                <option value="">--</option>
+                <option value="OBLIGATORIA" {% if tipo_filtro == 'OBLIGATORIA' %}selected{% endif %}>OBLIGATORIA</option>
+                <option value="ELECTIVA" {% if tipo_filtro == 'ELECTIVA' %}selected{% endif %}>ELECTIVA</option>
+            </select>
+        </div>
+        <button type="submit" class="btn-search">Cargar</button>
+    </form>
+
+    {% elif tab == 'crear' %}
+    <form method="POST" action="/configuracion/asignaturas/crear" class="form-inline" style="flex-wrap: wrap;">
+        <div class="form-group" style="width: 48%;">
+            <label for="codigo">Código Asignatura</label>
+            <input type="text" id="codigo" name="codigo" pattern="^[A-Z]{3}[0-9]{3}$" title="Ejemplo: MAT101 (3 letras mayúsculas + 3 números)" required>
+        </div>
+        <div class="form-group" style="width: 48%;">
+            <label for="nombre">Nombre</label>
+            <input type="text" id="nombre" name="nombre" required maxlength="30">
+        </div>
+        <div class="form-group" style="width: 48%;">
+            <label for="creditos">Créditos</label>
+            <input type="number" id="creditos" name="creditos" min="0" max="10" required>
+        </div>
+        <div class="form-group" style="width: 48%;">
+            <label for="tipo">Tipo</label>
+            <select id="tipo" name="tipo" required>
+                <option value="OBLIGATORIA">OBLIGATORIA</option>
+                <option value="ELECTIVA">ELECTIVA</option>
+            </select>
+        </div>
+        <div class="form-group" style="width: 100%;">
+            <label for="descripcion">Descripción</label>
+            <input type="text" id="descripcion" name="descripcion" required maxlength="100">
+        </div>
+
+        <hr style="width: 100%; border: 1px solid #eee; margin: 15px 0;">
+        <h4 style="width: 100%; margin: 0 0 10px 0;">Asignar a Plan de Estudio (Requerido)</h4>
+        
+        <div class="form-group" style="width: 48%;">
+            <label for="prog_academico">Programa Académico</label>
+            <input type="text" id="prog_academico" name="prog_academico" list="programas_list" required>
+            <datalist id="programas_list">
+                {% for p in programas %}
+                    <option value="{{ p.nombre }}">
+                {% endfor %}
+            </datalist>
+        </div>
+        <div class="form-group" style="width: 48%;">
+            <label for="semestre">Semestre</label>
+            <input type="number" id="semestre" name="semestre" min="1" max="12" required>
+        </div>
+        
+        <div class="form-buttons" style="width: 100%; margin-top: 15px;">
+            <button type="submit" class="btn-search">Crear y Asignar</button>
+        </div>
+    </form>
+
+    {% elif tab == 'actualizar' %}
+    {% if not asignatura_edit %}
+    <form class="search-form" method="GET" action="/configuracion/asignaturas">
+        <input type="hidden" name="tab" value="actualizar">
+        <div class="search-group">
+            <label for="codigo_cargar">Ingrese el Código de la Asignatura a actualizar</label>
+            <input type="text" id="codigo_cargar" name="codigo_cargar" placeholder="Ej: MAT101" required>
+        </div>
+        <button type="submit" class="btn-action">Cargar Asignatura</button>
+    </form>
+    {% else %}
+    <form method="POST" action="/configuracion/asignaturas/{{ asignatura_edit.codigo }}/editar" class="form-inline">
+        <div class="form-group">
+            <label for="nombre">Nombre</label>
+            <input type="text" id="nombre" name="nombre" value="{{ asignatura_edit.nombre }}" required maxlength="30">
+        </div>
+        <div class="form-group">
+            <label for="creditos">Créditos</label>
+            <input type="number" id="creditos" name="creditos" min="0" max="10" value="{{ asignatura_edit.creditos }}" required>
+        </div>
+        <div class="form-group">
+            <label for="descripcion">Descripción</label>
+            <input type="text" id="descripcion" name="descripcion" value="{{ asignatura_edit.descripcion }}" required maxlength="100">
+        </div>
+        <div class="form-group">
+            <label for="tipo">Tipo</label>
+            <select id="tipo" name="tipo" required>
+                <option value="OBLIGATORIA" {% if asignatura_edit.tipo == 'OBLIGATORIA' %}selected{% endif %}>OBLIGATORIA</option>
+                <option value="ELECTIVA" {% if asignatura_edit.tipo == 'ELECTIVA' %}selected{% endif %}>ELECTIVA</option>
+            </select>
+        </div>
+        <div class="form-buttons" style="width: 100%; display: flex; gap: 10px; margin-top: 15px;">
+            <button type="submit" class="btn-action">Guardar Cambios</button>
+            <a href="/configuracion/asignaturas?tab=actualizar" class="btn btn-secondary" style="padding: 10px;">Cancelar</a>
+        </div>
+    </form>
+    {% endif %}
+
+    {% elif tab == 'eliminar' %}
+    <form method="POST" action="" id="form-eliminar" class="search-form" onsubmit="event.preventDefault(); document.getElementById('form-eliminar').action='/configuracion/asignaturas/' + document.getElementById('codigo_eliminar').value + '/eliminar'; document.getElementById('form-eliminar').submit();">
+        <div class="search-group">
+            <label for="codigo_eliminar">Ingrese el Código de la Asignatura a eliminar</label>
+            <input type="text" id="codigo_eliminar" name="codigo_eliminar" placeholder="Ej: MAT101" required>
+        </div>
+        <button type="submit" class="btn-danger" onclick="return confirm('¿Eliminar esta asignatura? Se removerá de todos los planes de estudio.');">Eliminar Asignatura</button>
+    </form>
+    {% endif %}
+</div>
+
+<div class="results-card">
+    <div class="results-count">Mostrando {{ asignaturas|length }} resultados (La base de datos se evidencia en todo momento)</div>
+    <table class="modern-table">
+        <thead>
+            <tr>
+                <th>CÓDIGO</th>
+                <th>NOMBRE</th>
+                <th>CRÉDITOS</th>
+                <th>TIPO</th>
+                <th>DESCRIPCIÓN</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for a in asignaturas %}
+            <tr>
+                <td style="font-weight: bold; color: #3498db;">{{ a.codigo }}</td>
+                <td>{{ a.nombre }}</td>
+                <td>{{ a.creditos }}</td>
+                <td>
+                    <span style="padding: 3px 8px; border-radius: 12px; font-size: 0.8em; {% if a.tipo == 'OBLIGATORIA' %}background: #cce5ff; color: #004085;{% else %}background: #e2e3e5; color: #383d41;{% endif %}">
+                        {{ a.tipo }}
+                    </span>
+                </td>
+                <td>{{ a.descripcion }}</td>
+            </tr>
+            {% endfor %}
+            {% if not asignaturas %}
+            <tr>
+                <td colspan="5" style="text-align: center; padding: 20px;">No se encontraron asignaturas</td>
+            </tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

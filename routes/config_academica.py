@@ -1,4 +1,5 @@
-from flask import Blueprint, render_template, request, redirect
+from flask import Blueprint, render_template, request, redirect, flash, url_for
+import services.config_academica_service as srv
 
 config_academica_bp = Blueprint('config_academica', __name__)
 
@@ -7,26 +8,82 @@ config_academica_bp = Blueprint('config_academica', __name__)
 
 @config_academica_bp.route('/configuracion/estudiantes')
 def listar_estudiantes():
-    """Muestra lista de estudiantes con opciones de CRUD."""
-    return render_template('en_construccion.html')
+    """Muestra lista de estudiantes con opciones de CRUD y busqueda."""
+    correo = request.args.get('correo')
+    tipo_id = request.args.get('tipo_id')
+    id_num = request.args.get('id')
+    tab = request.args.get('tab', 'buscar')
+    
+    codigo_cargar = request.args.get('codigo_cargar')
+    estudiante_edit = None
+    if codigo_cargar and tab == 'actualizar':
+        estudiante_edit = srv.obtener_estudiante(codigo_cargar)
+        if not estudiante_edit:
+            flash(f'Estudiante con código {codigo_cargar} no encontrado.', 'error')
+    
+    estudiantes = srv.listar_estudiantes(correo, tipo_id, id_num, limit=20)
+    return render_template('configuracion/estudiantes.html', 
+                           estudiantes=estudiantes, 
+                           tab=tab,
+                           estudiante_edit=estudiante_edit,
+                           correo=correo, tipo_id=tipo_id, id_num=id_num)
 
 
 @config_academica_bp.route('/configuracion/estudiantes/crear', methods=['GET', 'POST'])
 def crear_estudiante():
     """GET: formulario. POST: crea usuario + estudiante + cuenta corriente (transaccion)."""
-    return render_template('en_construccion.html')
+    if request.method == 'POST':
+        try:
+            codigo = request.form['codigo']
+            nombre = request.form['nombre']
+            fecha_nacimiento = request.form['fecha_nacimiento']
+            direccion = request.form['direccion']
+            tipo_id = request.form['tipo_id']
+            id_num = request.form['id']
+            correo = request.form['correo']
+            contrasena = request.form['contrasena']
+            
+            srv.crear_estudiante(codigo, nombre, fecha_nacimiento, direccion, tipo_id, id_num, correo, contrasena)
+            flash('Estudiante creado exitosamente', 'success')
+            return redirect(url_for('config_academica.listar_estudiantes'))
+        except Exception as e:
+            flash(f'Error al crear estudiante: {str(e)}', 'error')
+            
+    # GET renders the same list but with a form to create
+    return redirect(url_for('config_academica.listar_estudiantes'))
 
 
 @config_academica_bp.route('/configuracion/estudiantes/<codigo>/editar', methods=['GET', 'POST'])
 def editar_estudiante(codigo):
     """GET: formulario con datos actuales. POST: actualiza el estudiante."""
-    return render_template('en_construccion.html')
+    if request.method == 'POST':
+        try:
+            nombre = request.form['nombre']
+            fecha_nacimiento = request.form['fecha_nacimiento']
+            direccion = request.form['direccion']
+            estado = request.form['estado']
+            
+            srv.actualizar_estudiante(codigo, nombre, fecha_nacimiento, direccion, estado)
+            flash('Estudiante actualizado exitosamente', 'success')
+        except Exception as e:
+            flash(f'Error al actualizar estudiante: {str(e)}', 'error')
+            
+        return redirect(url_for('config_academica.listar_estudiantes'))
+        
+    estudiante = srv.obtener_estudiante(codigo)
+    estudiantes = srv.listar_estudiantes()
+    return render_template('configuracion/estudiantes.html', estudiantes=estudiantes, estudiante_edit=estudiante)
 
 
 @config_academica_bp.route('/configuracion/estudiantes/<codigo>/desactivar', methods=['POST'])
 def desactivar_estudiante(codigo):
     """Desactiva estudiante y su usuario (estado = INACTIVO)."""
-    return render_template('en_construccion.html')
+    try:
+        srv.desactivar_estudiante(codigo)
+        flash('Estudiante desactivado exitosamente', 'success')
+    except Exception as e:
+        flash(f'Error al desactivar estudiante: {str(e)}', 'error')
+    return redirect(url_for('config_academica.listar_estudiantes'))
 
 
 # --- Programas Academicos ---
@@ -34,51 +91,138 @@ def desactivar_estudiante(codigo):
 @config_academica_bp.route('/configuracion/programas')
 def listar_programas():
     """Muestra lista de programas academicos."""
-    return render_template('en_construccion.html')
+    programas = srv.listar_programas()
+    return render_template('configuracion/programas.html', programas=programas)
 
 
 @config_academica_bp.route('/configuracion/programas/crear', methods=['GET', 'POST'])
 def crear_programa():
     """GET: formulario. POST: crea el programa academico."""
-    return render_template('en_construccion.html')
+    if request.method == 'POST':
+        try:
+            nombre = request.form['nombre']
+            facultad = request.form['facultad']
+            modo = request.form['modo']
+            duracion = request.form['duracion']
+            
+            srv.crear_programa(nombre, facultad, modo, duracion)
+            flash('Programa creado exitosamente', 'success')
+            return redirect(url_for('config_academica.listar_programas'))
+        except Exception as e:
+            flash(f'Error al crear programa: {str(e)}', 'error')
+            
+    return redirect(url_for('config_academica.listar_programas'))
 
 
 @config_academica_bp.route('/configuracion/programas/<nombre>/editar', methods=['GET', 'POST'])
 def editar_programa(nombre):
     """GET: formulario con datos actuales. POST: actualiza el programa."""
-    return render_template('en_construccion.html')
+    if request.method == 'POST':
+        try:
+            facultad = request.form['facultad']
+            modo = request.form['modo']
+            duracion = request.form['duracion']
+            
+            srv.actualizar_programa(nombre, facultad, modo, duracion)
+            flash('Programa actualizado exitosamente', 'success')
+        except Exception as e:
+            flash(f'Error al actualizar programa: {str(e)}', 'error')
+            
+        return redirect(url_for('config_academica.listar_programas'))
+        
+    programa = srv.obtener_programa(nombre)
+    programas = srv.listar_programas()
+    return render_template('configuracion/programas.html', programas=programas, programa_edit=programa)
 
 
 @config_academica_bp.route('/configuracion/programas/<nombre>/desactivar', methods=['POST'])
 def desactivar_programa(nombre):
     """Desactiva el programa academico (estado = INACTIVO)."""
-    return render_template('en_construccion.html')
+    flash('El esquema de base de datos actual no soporta desactivar o eliminar un programa.', 'warning')
+    return redirect(url_for('config_academica.listar_programas'))
 
 
 # --- Asignaturas ---
 
 @config_academica_bp.route('/configuracion/asignaturas')
 def listar_asignaturas():
-    """Muestra lista de asignaturas."""
-    return render_template('en_construccion.html')
+    """Muestra lista de asignaturas con opciones de CRUD y busqueda."""
+    codigo = request.args.get('codigo')
+    nombre = request.args.get('nombre')
+    tipo = request.args.get('tipo')
+    tab = request.args.get('tab', 'buscar')
+    
+    codigo_cargar = request.args.get('codigo_cargar')
+    asignatura_edit = None
+    if codigo_cargar and tab == 'actualizar':
+        asignatura_edit = srv.obtener_asignatura(codigo_cargar)
+        if not asignatura_edit:
+            flash(f'Asignatura con código {codigo_cargar} no encontrada.', 'error')
+            
+    asignaturas = srv.listar_asignaturas(codigo, nombre, tipo, limit=20)
+    programas = srv.listar_programas()
+    return render_template('configuracion/asignaturas.html', 
+                           asignaturas=asignaturas, 
+                           programas=programas,
+                           tab=tab,
+                           asignatura_edit=asignatura_edit,
+                           codigo_filtro=codigo, nombre_filtro=nombre, tipo_filtro=tipo)
 
 
 @config_academica_bp.route('/configuracion/asignaturas/crear', methods=['GET', 'POST'])
 def crear_asignatura():
     """GET: formulario con datalist de programas. POST: crea asignatura y la asigna a plan de estudio."""
-    return render_template('en_construccion.html')
+    if request.method == 'POST':
+        try:
+            codigo = request.form['codigo']
+            nombre = request.form['nombre']
+            creditos = request.form['creditos']
+            descripcion = request.form['descripcion']
+            tipo = request.form['tipo']
+            prog_academico = request.form['prog_academico']
+            semestre = request.form['semestre']
+            
+            srv.crear_asignatura(codigo, nombre, creditos, descripcion, tipo, prog_academico, semestre)
+            flash('Asignatura creada y asignada exitosamente', 'success')
+            return redirect(url_for('config_academica.listar_asignaturas'))
+        except Exception as e:
+            flash(f'Error al crear asignatura: {str(e)}', 'error')
+            
+    return redirect(url_for('config_academica.listar_asignaturas'))
 
 
 @config_academica_bp.route('/configuracion/asignaturas/<codigo>/editar', methods=['GET', 'POST'])
 def editar_asignatura(codigo):
     """GET: formulario con datos actuales. POST: actualiza la asignatura."""
-    return render_template('en_construccion.html')
+    if request.method == 'POST':
+        try:
+            nombre = request.form['nombre']
+            creditos = request.form['creditos']
+            descripcion = request.form['descripcion']
+            tipo = request.form['tipo']
+            
+            srv.actualizar_asignatura(codigo, nombre, creditos, descripcion, tipo)
+            flash('Asignatura actualizada exitosamente', 'success')
+        except Exception as e:
+            flash(f'Error al actualizar asignatura: {str(e)}', 'error')
+            
+        return redirect(url_for('config_academica.listar_asignaturas'))
+        
+    asignatura = srv.obtener_asignatura(codigo)
+    asignaturas = srv.listar_asignaturas()
+    programas = srv.listar_programas()
+    return render_template('configuracion/asignaturas.html', asignaturas=asignaturas, asignatura_edit=asignatura, programas=programas)
 
 
 @config_academica_bp.route('/configuracion/asignaturas/<codigo>/eliminar', methods=['POST'])
 def eliminar_asignatura(codigo):
     """Elimina la asignatura y la remueve de todos los planes de estudio."""
-    return render_template('en_construccion.html')
+    try:
+        srv.eliminar_asignatura(codigo)
+        flash('Asignatura eliminada exitosamente', 'success')
+    except Exception as e:
+        flash(f'Error al eliminar asignatura: {str(e)}', 'error')
+    return redirect(url_for('config_academica.listar_asignaturas'))
 
 
 # --- Plan de Estudio ---
@@ -86,16 +230,49 @@ def eliminar_asignatura(codigo):
 @config_academica_bp.route('/configuracion/plan-estudio')
 def listar_plan_estudio():
     """Muestra plan de estudio: programa > semestre > asignaturas con creditos."""
-    return render_template('en_construccion.html')
+    programas = srv.listar_programas()
+    prog_seleccionado = request.args.get('programa')
+    
+    plan_estudio = []
+    asignaturas_disp = []
+    
+    if prog_seleccionado:
+        plan_estudio = srv.listar_plan_estudio(prog_seleccionado)
+        asignaturas_disp = srv.listar_asignaturas()
+        
+    return render_template('configuracion/plan_estudio.html', 
+                           programas=programas, 
+                           prog_seleccionado=prog_seleccionado, 
+                           plan_estudio=plan_estudio,
+                           asignaturas=asignaturas_disp)
 
 
 @config_academica_bp.route('/configuracion/plan-estudio/asignar', methods=['POST'])
 def asignar_asignatura_plan():
     """Asigna una asignatura existente a un programa con su semestre."""
-    return render_template('en_construccion.html')
+    try:
+        prog_academico = request.form['prog_academico']
+        cod_asignatura = request.form['cod_asignatura']
+        semestre = request.form['semestre']
+        
+        srv.asignar_asignatura_plan(prog_academico, cod_asignatura, semestre)
+        flash('Asignatura agregada al plan de estudio', 'success')
+    except Exception as e:
+        flash(f'Error al asignar asignatura: {str(e)}', 'error')
+        
+    return redirect(url_for('config_academica.listar_plan_estudio', programa=request.form.get('prog_academico')))
 
 
 @config_academica_bp.route('/configuracion/plan-estudio/eliminar', methods=['POST'])
 def eliminar_asignatura_plan():
     """Remueve una asignatura de un plan de estudio especifico."""
-    return render_template('en_construccion.html')
+    try:
+        prog_academico = request.form['prog_academico']
+        cod_asignatura = request.form['cod_asignatura']
+        
+        srv.eliminar_asignatura_plan(prog_academico, cod_asignatura)
+        flash('Asignatura removida del plan de estudio', 'success')
+    except Exception as e:
+        flash(f'Error al remover asignatura: {str(e)}', 'error')
+        
+    return redirect(url_for('config_academica.listar_plan_estudio', programa=request.form.get('prog_academico')))
