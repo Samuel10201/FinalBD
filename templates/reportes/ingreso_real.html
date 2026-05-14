@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block titulo %}Reporte: Ingreso Real{% endblock %}
+{% block contenido %}
+
+<div class="card" style="margin-bottom: 20px; padding: 20px;">
+    <form method="GET" action="/reportes/ingreso_real">
+        <div style="display: flex; gap: 15px; align-items: flex-end;">
+            <div class="form-group" style="margin-bottom: 0; flex: 1;">
+                <label for="periodo">Periodo:</label>
+                <select name="periodo" id="periodo" required style="width: 100%; padding: 8px;">
+                    <option value="">Seleccione...</option>
+                    {% for p in periodos %}
+                        <option value="{{ p.codigo }}" {% if periodo_sel == p.codigo %}selected{% endif %}>{{ p.codigo }} - {{ p.descripcion }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group" style="margin-bottom: 0; flex: 1;">
+                <label for="programa">Programa Académico:</label>
+                <select name="programa" id="programa" required style="width: 100%; padding: 8px;">
+                    <option value="">Seleccione...</option>
+                    {% for prog in programas %}
+                        <option value="{{ prog.nombre }}" {% if programa_sel == prog.nombre %}selected{% endif %}>{{ prog.nombre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <button type="submit" class="btn btn-primary">Calcular</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+{% if periodo_sel %}
+<div class="card" style="padding: 20px; text-align: center;">
+    <h2 style="color: #555;">Total Ingreso Real Recaudado</h2>
+    <h1 style="color: #007bff; font-size: 3em; margin: 10px 0;">$ {{ "{:,.2f}".format(total|float) }}</h1>
+    <p>Suma de pagos completados para el programa <strong>{{ programa_sel }}</strong> en el periodo <strong>{{ periodo_sel }}</strong></p>
+</div>
+{% endif %}
+
+{% endblock %}
