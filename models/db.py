@@ -18,6 +18,8 @@ las columnas en la tabla original o la consulta entonces habra inconsistencias.
 from psycopg2.extras import RealDictCursor
 from dotenv import load_dotenv
 
+load_dotenv()
+
 
 def get_connection():
     """Crea y retorna una conexion a PostgreSQL (Supabase).
@@ -34,7 +36,7 @@ def get_connection():
         if not database_url:
             raise ValueError('DATABASE_URL no configurada en .env')
         
-        conn = psycopg2.connect(database_url)
+        conn = psycopg2.connect(database_url, cursor_factory=RealDictCursor)
         return conn
     except psycopg2.Error as e:
         print(f"Error de conexión a la BD: {e}")

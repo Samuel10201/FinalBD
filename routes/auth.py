@@ -44,7 +44,7 @@ def login():
         usuario = auth_login(correo, contrasena)
         if usuario:
             session['usuario'] = dict(usuario)
-            flash(f'Bienvenido, {usuario["nombre"]}', 'success')
+            flash(f'Hola, {usuario["nombre"]}', 'success')
             return redirect(DESTINOS_POR_ROL.get(usuario['rol'], '/'))
 
         flash('Correo o contrasena incorrectos', 'error')

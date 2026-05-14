@@ -11,7 +11,7 @@
     {% set rol = session.get('vista_rol') or session['usuario']['rol'] %}
     <nav class="navbar">
         <div class="navbar-top">
-            <div class="navbar-brand">Cuenta Corriente</div>
+            <div class="navbar-brand">Sistema Academico</div>
             <div class="navbar-right">
                 {% if session['usuario']['rol'] == 'ADMINISTRADOR' %}
                 <div class="admin-bar">
@@ -24,7 +24,6 @@
                             <option value="ESTUDIANTE" {% if rol == 'ESTUDIANTE' %}selected{% endif %}>Estudiante</option>
                         </select>
                     </form>
-                    <a href="/admin/usuarios">Usuarios</a>
                 </div>
                 {% endif %}
                 <div class="nav-user">
@@ -35,6 +34,10 @@
         </div>
         <div class="navbar-bottom">
             <ul class="nav-links">
+                {% if rol == 'ADMINISTRADOR' %}
+                <li><a href="/admin/usuarios">Usuarios</a></li>
+                {% endif %}
+
                 {% if rol in ['ADMINISTRADOR', 'SUPERVISOR'] %}
                 <li><a href="/configuracion/estudiantes">Estudiantes</a></li>
                 <li><a href="/configuracion/programas">Programas</a></li>
@@ -67,6 +70,7 @@
     {% endif %}
 
     <main class="{% block clase_contenedor %}container{% endblock %}">
+        {% block alertas %}
         {% with mensajes = get_flashed_messages(with_categories=true) %}
             {% if mensajes %}
                 {% for categoria, mensaje in mensajes %}
@@ -74,6 +78,7 @@
                 {% endfor %}
             {% endif %}
         {% endwith %}
+        {% endblock %}
 
         {% block contenido %}{% endblock %}
     </main>

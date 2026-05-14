@@ -10,14 +10,15 @@ def verificar_acceso_asistente():
     """Verifica que el usuario tiene rol ASISTENTE o ADMINISTRADOR."""
     if 'usuario' not in session:
         return redirect('/login')
-    
-    # El admin usa vista_actual para simulación de rol
-    rol_efectivo = session.get('vista_actual') or session.get('rol')
-    
-    if rol_efectivo not in ['ASISTENTE', 'ADMINISTRADOR']:
-        flash('Acceso denegado. Solo ASISTENTE puede acceder a matrícula.', 'error')
+
+    rol = session['usuario']['rol']
+    if rol == 'ADMINISTRADOR':
+        return None
+
+    if rol != 'ASISTENTE':
+        flash('Acceso denegado. Solo ASISTENTE puede acceder a matricula.', 'error')
         return redirect('/')
-    
+
     return None
 
 

@@ -1,5 +1,6 @@
 {% extends "base.html" %}
 {% block titulo %}Iniciar Sesion{% endblock %}
+{% block alertas %}{% endblock %}
 {% block contenido %}
 <div class="login-container">
     <div class="card">
@@ -16,5 +17,12 @@
             <button type="submit" class="btn btn-primary" style="width: 100%">Ingresar</button>
         </form>
     </div>
+    {% with mensajes = get_flashed_messages(with_categories=true) %}
+        {% if mensajes %}
+            {% for categoria, mensaje in mensajes %}
+            <div class="alert alert-{{ categoria }}">{{ mensaje }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
 </div>
 {% endblock %}
