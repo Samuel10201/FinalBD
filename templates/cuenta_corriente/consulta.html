@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block titulo %}Consulta de Cuenta Corriente{% endblock %}
+
+{% block contenido %}
+<div class="card p-4 mb-4">
+    <h2>Consultar Cuenta Corriente</h2>
+    <form method="POST" action="/cuenta-corriente/consulta">
+        <div class="form-group">
+            <label for="cod_estudiante">Código de Estudiante</label>
+            <input list="estudiantes_list" id="cod_estudiante" name="cod_estudiante" required placeholder="Escribe para buscar..." value="{{ estudiante.codigo if estudiante else '' }}">
+            <datalist id="estudiantes_list">
+                {% for est in estudiantes %}
+                <option value="{{ est.codigo }}">{{ est.nombre }} ({{ est.id }})</option>
+                {% endfor %}
+            </datalist>
+        </div>
+        
+        <div class="form-group">
+            <label for="cod_periodo">Filtrar por Periodo (Opcional)</label>
+            <select id="cod_periodo" name="cod_periodo">
+                <option value="">-- Todos los periodos --</option>
+                {% for p in periodos %}
+                <option value="{{ p.codigo }}" {% if periodo_actual == p.codigo %}selected{% endif %}>{{ p.codigo }} - {{ p.descripcion }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Consultar</button>
+    </form>
+</div>
+
+{% if estudiante %}
+<div class="card p-4">
+    <h3>Estado de Cuenta: {{ estudiante.nombre }} ({{ estudiante.codigo }})</h3>
+    <p>
+        <strong>Balance de la cuenta:</strong> 
+        {% if saldo >= 0 %}
+            <span style="color: green; font-weight: bold;">${{ "{:,.2f}".format(saldo) }} (Al día)</span>
+        {% else %}
+            <span style="color: red; font-weight: bold;">${{ "{:,.2f}".format(saldo) }} (Deuda)</span>
+        {% endif %}
+    </p>
+
+    <table border="1" style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+        <thead style="background-color: #f2f2f2;">
+            <tr>
+                <th>Fecha</th>
+                <th>Periodo</th>
+                <th>Descripción</th>
+                <th>Tipo</th>
+                <th>Valor</th>
+                <th>Estado</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for mov in movimientos %}
+            <tr>
+                <td>{{ mov.fecha.strftime('%Y-%m-%d %H:%M') if mov.fecha else '' }}</td>
+                <td>{{ mov.codigo_periodo }}</td>
+                <td>{{ mov.descripcion_mov }}</td>
+                <td>
+                    {% if mov.grupo == 'COBRO' %}
+                        <span style="color: red; font-weight: bold;">COBRO (-)</span>
+                    {% else %}
+                        <span style="color: green; font-weight: bold;">PAGO (+)</span>
+                    {% endif %}
+                </td>
+                <td>${{ "{:,.2f}".format(mov.valor) }}</td>
+                <td>{{ mov.estado_pago if mov.estado_pago else 'APLICADO' }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6" style="text-align: center;">No hay movimientos registrados para este filtro.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+{% endblock %}

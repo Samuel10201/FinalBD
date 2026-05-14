@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block titulo %}Mi Cuenta Corriente{% endblock %}
+
+{% block contenido %}
+<div class="card p-4">
+    <h2>Mi Estado de Cuenta</h2>
+    
+    {% if estudiante %}
+        <p>
+            <strong>Hola, {{ estudiante.nombre }}. Tu balance actual es:</strong><br>
+            {% if saldo >= 0 %}
+                <span style="color: green; font-weight: bold; font-size: 1.2em;">${{ "{:,.2f}".format(saldo) }} (Estás al día)</span>
+            {% else %}
+                <span style="color: red; font-weight: bold; font-size: 1.2em;">${{ "{:,.2f}".format(saldo) }} (Saldo Pendiente)</span>
+            {% endif %}
+        </p>
+
+        <table border="1" style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+            <thead style="background-color: #004085; color: white;">
+                <tr>
+                    <th>Fecha</th>
+                    <th>Periodo</th>
+                    <th>Descripción</th>
+                    <th>Tipo</th>
+                    <th>Valor</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for mov in movimientos %}
+                <tr>
+                    <td>{{ mov.fecha.strftime('%Y-%m-%d %H:%M') if mov.fecha else '' }}</td>
+                    <td>{{ mov.codigo_periodo }}</td>
+                    <td>{{ mov.descripcion_mov }}</td>
+                    <td>
+                        {% if mov.grupo == 'COBRO' %}
+                            <span style="color: red; font-weight: bold;">Cargo</span>
+                        {% else %}
+                            <span style="color: green; font-weight: bold;">Abono</span>
+                        {% endif %}
+                    </td>
+                    <td>${{ "{:,.2f}".format(mov.valor) }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" style="text-align: center;">Aún no tienes movimientos en tu cuenta.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="alert alert-warning">No se pudo cargar la información del estudiante.</div>
+    {% endif %}
+</div>
+{% endblock %}

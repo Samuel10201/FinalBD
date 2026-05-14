@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block titulo %}Pago en Línea{% endblock %}
+
+{% block contenido %}
+<div class="card p-4">
+    <h2>Simulador de Pago en Línea</h2>
+    <p>Complete los datos para realizar el pago de sus obligaciones académicas.</p>
+
+    <form method="POST" action="/pagos/en-linea">
+        <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+            <h4>Detalle a Pagar</h4>
+            <div class="form-group">
+                <label for="codigo_servicio">Servicio / Concepto</label>
+                <select id="codigo_servicio" name="codigo_servicio" required>
+                    <option value="">-- Seleccione el concepto a pagar --</option>
+                    {% for s in servicios %}
+                    <option value="{{ s.codigo }}">{{ s.descripcion }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="cod_periodo">Periodo Académico</label>
+                <select id="cod_periodo" name="cod_periodo" required>
+                    <option value="">-- Seleccione --</option>
+                    {% for p in periodos %}
+                    <option value="{{ p.codigo }}">{{ p.codigo }} - {{ p.descripcion }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="monto">Monto a pagar ($)</label>
+                <input type="number" id="monto" name="monto" min="1" step="0.01" required>
+            </div>
+        </div>
+
+        <div style="background-color: #eef2f5; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+            <h4>Datos de Tarjeta (Simulación)</h4>
+            <div class="form-group">
+                <label>Nombre en la tarjeta</label>
+                <input type="text" required placeholder="EJ: JUAN PEREZ" pattern="[A-Za-zÀ-ÿ\s]+"
+                    title="Solo letras y espacios permitidos">
+            </div>
+            <div class="form-group">
+                <label>Número de Tarjeta</label>
+                <input type="text" required placeholder="Ej: 4123412341234123" pattern="\d{16}" maxlength="16"
+                    title="Debe contener exactamente 16 números, sin guiones ni espacios">
+            </div>
+            <div style="display: flex; gap: 15px;">
+                <div class="form-group" style="flex: 1;">
+                    <label>Fecha de Expiración</label>
+                    <input type="text" required placeholder="MM/YY" pattern="(0[1-9]|1[0-2])\/\d{2}" maxlength="5"
+                        title="Debe tener el formato MM/YY (ejemplo: 12/26)">
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label>Código CVV</label>
+                    <input type="password" required placeholder="Ej: 123" pattern="\d{3,4}" maxlength="4"
+                        title="3 o 4 números de seguridad">
+                </div>
+            </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="margin-top: 15px; width: 100%;">Pagar Ahora</button>
+    </form>
+</div>
+{% endblock %}
