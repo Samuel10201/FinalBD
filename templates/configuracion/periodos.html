@@ -1,0 +1,173 @@
+{% extends "crud_base.html" %}
+
+{% block titulo_formulario %}
+    {% if periodo_edit %}
+        Editar Periodo
+    {% else %}
+        Crear Periodo
+    {% endif %}
+{% endblock %}
+
+{% block form_action %}
+    {% if periodo_edit %}
+        /configuracion/periodos/{{ periodo_edit.codigo }}/editar
+    {% else %}
+        /configuracion/periodos/crear
+    {% endif %}
+{% endblock %}
+
+{% block campos %}
+
+    {% if not periodo_edit %}
+    <div class="form-group">
+        <label for="codigo">Código</label>
+
+        <input
+            type="text"
+            id="codigo"
+            name="codigo"
+            maxlength="6"
+            pattern="[0-9]{6}"
+            placeholder="202510"
+            required
+        >
+    </div>
+    {% else %}
+    <div class="form-group">
+        <label>Código</label>
+
+        <input
+            type="text"
+            value="{{ periodo_edit.codigo }}"
+            disabled
+        >
+    </div>
+    {% endif %}
+
+    <div class="form-group">
+        <label for="descripcion">Descripción</label>
+
+        <input
+            type="text"
+            id="descripcion"
+            name="descripcion"
+            value="{{ periodo_edit.descripcion if periodo_edit else '' }}"
+            required
+        >
+    </div>
+
+    <div class="form-group">
+        <label for="fecha_inicio">Fecha Inicio</label>
+
+        <input
+            type="date"
+            id="fecha_inicio"
+            name="fecha_inicio"
+            value="{{ periodo_edit.fecha_inicio if periodo_edit else '' }}"
+            required
+        >
+    </div>
+
+    <div class="form-group">
+        <label for="fecha_fin">Fecha Fin</label>
+
+        <input
+            type="date"
+            id="fecha_fin"
+            name="fecha_fin"
+            value="{{ periodo_edit.fecha_fin if periodo_edit else '' }}"
+            required
+        >
+    </div>
+
+    {% if periodo_edit %}
+    <div class="form-group">
+        <label for="estado">Estado</label>
+
+        <select id="estado" name="estado">
+
+            <option value="ACTIVO"
+                {% if periodo_edit.estado == 'ACTIVO' %}
+                    selected
+                {% endif %}
+            >
+                ACTIVO
+            </option>
+
+            <option value="INACTIVO"
+                {% if periodo_edit.estado == 'INACTIVO' %}
+                    selected
+                {% endif %}
+            >
+                INACTIVO
+            </option>
+
+        </select>
+    </div>
+
+    <div class="form-group" style="flex-basis: 100%;">
+        <a href="/configuracion/periodos">
+            Cancelar edición
+        </a>
+    </div>
+    {% endif %}
+
+{% endblock %}
+
+{% block titulo_tabla %}
+    Periodos Registrados
+{% endblock %}
+
+{% block columnas %}
+    <th>Código</th>
+    <th>Descripción</th>
+    <th>Fecha Inicio</th>
+    <th>Fecha Fin</th>
+    <th>Estado</th>
+    <th>Acciones</th>
+{% endblock %}
+
+{% block filas %}
+
+    {% for p in periodos %}
+    <tr>
+
+        <td>{{ p.codigo }}</td>
+        <td>{{ p.descripcion }}</td>
+        <td>{{ p.fecha_inicio }}</td>
+        <td>{{ p.fecha_fin }}</td>
+        <td>{{ p.estado }}</td>
+
+        <td>
+
+            <a
+                href="/configuracion/periodos/{{ p.codigo }}/editar"
+                class="btn btn-primary"
+                style="padding: 2px 5px; font-size: 0.8em; text-decoration: none;"
+            >
+                Editar
+            </a>
+
+            <form
+                action="/configuracion/periodos/{{ p.codigo }}/desactivar"
+                method="POST"
+                style="display:inline;"
+            >
+
+                <button
+                    type="submit"
+                    class="btn btn-danger"
+                    style="padding: 2px 5px; font-size: 0.8em;"
+                    onclick="return confirm('¿Desea desactivar este periodo?');"
+                >
+                    Desactivar
+                </button>
+
+            </form>
+
+        </td>
+
+    </tr>
+    {% endfor %}
+
+{% endblock %}

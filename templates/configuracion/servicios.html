@@ -1,0 +1,164 @@
+{% extends "crud_base.html" %}
+
+{% block titulo_formulario %}
+    {% if servicio_edit %}
+        Editar Servicio
+    {% else %}
+        Crear Servicio
+    {% endif %}
+{% endblock %}
+
+{% block form_action %}
+    {% if servicio_edit %}
+        /configuracion/servicios/{{ servicio_edit.codigo }}/editar
+    {% else %}
+        /configuracion/servicios/crear
+    {% endif %}
+{% endblock %}
+
+{% block campos %}
+
+    {% if not servicio_edit %}
+    <div class="form-group">
+        <label for="codigo">Código</label>
+        <input
+            type="text"
+            id="codigo"
+            name="codigo"
+            maxlength="4"
+            style="text-transform: uppercase;"
+            required
+        >
+    </div>
+    {% else %}
+    <div class="form-group">
+        <label>Código</label>
+        <input type="text" value="{{ servicio_edit.codigo }}" disabled>
+    </div>
+    {% endif %}
+
+    <div class="form-group">
+        <label for="grupo">Grupo</label>
+
+        <select id="grupo" name="grupo" required>
+
+            <option value="COBRO"
+                {% if servicio_edit and servicio_edit.grupo == 'COBRO' %}
+                    selected
+                {% endif %}
+            >
+                COBRO
+            </option>
+
+            <option value="PAGO"
+                {% if servicio_edit and servicio_edit.grupo == 'PAGO' %}
+                    selected
+                {% endif %}
+            >
+                PAGO
+            </option>
+
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="descripcion">Descripción</label>
+
+        <input
+            type="text"
+            id="descripcion"
+            name="descripcion"
+            value="{{ servicio_edit.descripcion if servicio_edit else '' }}"
+            required
+        >
+    </div>
+
+    {% if servicio_edit %}
+    <div class="form-group">
+        <label for="estado">Estado</label>
+
+        <select id="estado" name="estado">
+
+            <option value="ACTIVO"
+                {% if servicio_edit.estado == 'ACTIVO' %}
+                    selected
+                {% endif %}
+            >
+                ACTIVO
+            </option>
+
+            <option value="INACTIVO"
+                {% if servicio_edit.estado == 'INACTIVO' %}
+                    selected
+                {% endif %}
+            >
+                INACTIVO
+            </option>
+
+        </select>
+    </div>
+
+    <div class="form-group" style="flex-basis: 100%;">
+        <a href="/configuracion/servicios">
+            Cancelar edición
+        </a>
+    </div>
+    {% endif %}
+
+{% endblock %}
+
+{% block titulo_tabla %}
+    Servicios Registrados
+{% endblock %}
+
+{% block columnas %}
+    <th>Código</th>
+    <th>Grupo</th>
+    <th>Estado</th>
+    <th>Descripción</th>
+    <th>Acciones</th>
+{% endblock %}
+
+{% block filas %}
+
+    {% for s in servicios %}
+    <tr>
+
+        <td>{{ s.codigo }}</td>
+        <td>{{ s.grupo }}</td>
+        <td>{{ s.estado }}</td>
+        <td>{{ s.descripcion }}</td>
+
+        <td>
+
+            <a
+                href="/configuracion/servicios/{{ s.codigo }}/editar"
+                class="btn btn-primary"
+                style="padding: 2px 5px; font-size: 0.8em; text-decoration: none;"
+            >
+                Editar
+            </a>
+
+            <form
+                action="/configuracion/servicios/{{ s.codigo }}/desactivar"
+                method="POST"
+                style="display:inline;"
+            >
+
+                <button
+                    type="submit"
+                    class="btn btn-danger"
+                    style="padding: 2px 5px; font-size: 0.8em;"
+                    onclick="return confirm('¿Desea desactivar este servicio?');"
+                >
+                    Desactivar
+                </button>
+
+            </form>
+
+        </td>
+
+    </tr>
+    {% endfor %}
+
+{% endblock %}
