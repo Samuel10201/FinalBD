@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 
-{% block titulo %}Gestion de Estudiantes{% endblock %}
+{% block titulo %}Gestión de Estudiantes{% endblock %}
 
 {% block contenido %}
 
-<h2 style="margin-bottom: 1rem; color: #2c3e50;">Gestion de Estudiantes</h2>
+<h2 style="margin-bottom: 1rem; color: #1e293b;">Gestión de Estudiantes</h2>
 
 <div class="card">
     <div class="action-tabs">
@@ -32,8 +32,8 @@
             </select>
         </div>
         <div class="form-group">
-            <label for="id">Identificacion</label>
-            <input type="text" id="id" name="id" value="{{ id_num or '' }}" placeholder="Numero de documento">
+            <label for="id">Identificación</label>
+            <input type="text" id="id" name="id" value="{{ id_num or '' }}" placeholder="Número de documento">
         </div>
         <div class="form-buttons">
             <button type="submit" class="btn btn-primary">Buscar</button>
@@ -46,20 +46,20 @@
     {% elif tab == 'crear' %}
     <form method="POST" action="/configuracion/estudiantes/crear" class="form-inline">
         <div class="form-group">
-            <label for="codigo">Codigo Estudiante</label>
-            <input type="text" id="codigo" name="codigo" pattern="^[0-9]{2,8}$" title="De 2 a 8 digitos" required>
+            <label for="codigo">Código Estudiante</label>
+            <input type="text" id="codigo" name="codigo" pattern="^[0-9]{2,8}$" title="De 2 a 8 dígitos" required>
         </div>
         <div class="form-group">
             <label for="nombre">Nombre Completo</label>
-            <input type="text" id="nombre" name="nombre" required>
+            <input type="text" id="nombre" name="nombre" minlength="1" maxlength="50" required>
         </div>
         <div class="form-group">
             <label for="fecha_nacimiento">Fecha de Nacimiento</label>
             <input type="date" id="fecha_nacimiento" name="fecha_nacimiento" required>
         </div>
         <div class="form-group">
-            <label for="direccion">Direccion</label>
-            <input type="text" id="direccion" name="direccion" required>
+            <label for="direccion">Dirección</label>
+            <input type="text" id="direccion" name="direccion" minlength="5" maxlength="60" title="Mínimo 5 caracteres" required>
         </div>
         <div class="form-group">
             <label for="tipo_id">Tipo ID</label>
@@ -72,16 +72,16 @@
             </select>
         </div>
         <div class="form-group">
-            <label for="id">Numero de ID</label>
-            <input type="text" id="id" name="id" required>
+            <label for="id">Número de ID</label>
+            <input type="text" id="id" name="id" pattern="^[0-9]{1,15}$" title="Solo números" maxlength="15" required>
         </div>
         <div class="form-group">
-            <label for="correo">Correo Electronico</label>
-            <input type="email" id="correo" name="correo" required>
+            <label for="correo">Correo Electrónico</label>
+            <input type="email" id="correo" name="correo" maxlength="50" required pattern="[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}" title="Formato válido: usuario@dominio.ext (ej: nombre@correo.com)">
         </div>
         <div class="form-group">
-            <label for="contrasena">Contrasena</label>
-            <input type="password" id="contrasena" name="contrasena" required>
+            <label for="contrasena">Contraseña</label>
+            <input type="password" id="contrasena" name="contrasena" minlength="6" title="Mínimo 6 caracteres" required>
         </div>
         <div class="form-buttons">
             <button type="submit" class="btn btn-primary">Crear Estudiante</button>
@@ -92,20 +92,20 @@
         {% if estudiante_edit %}
         <form method="POST" action="/configuracion/estudiantes/{{ estudiante_edit.codigo }}/editar" class="form-inline">
             <div class="form-group">
-                <label>Codigo</label>
+                <label>Código</label>
                 <input type="text" value="{{ estudiante_edit.codigo }}" disabled>
             </div>
             <div class="form-group">
                 <label for="nombre">Nombre Completo</label>
-                <input type="text" id="nombre" name="nombre" value="{{ estudiante_edit.nombre }}" required>
+                <input type="text" id="nombre" name="nombre" value="{{ estudiante_edit.nombre }}" required minlength="1" maxlength="50">
             </div>
             <div class="form-group">
                 <label for="fecha_nacimiento">Fecha Nacimiento</label>
                 <input type="date" id="fecha_nacimiento" name="fecha_nacimiento" value="{{ estudiante_edit.fecha_nacimiento }}" required>
             </div>
             <div class="form-group">
-                <label for="direccion">Direccion</label>
-                <input type="text" id="direccion" name="direccion" value="{{ estudiante_edit.direccion }}" required>
+                <label for="direccion">Dirección</label>
+                <input type="text" id="direccion" name="direccion" value="{{ estudiante_edit.direccion }}" required maxlength="60">
             </div>
             <div class="form-group">
                 <label for="estado">Estado</label>
@@ -123,8 +123,13 @@
         <form method="GET" action="/configuracion/estudiantes" class="form-inline">
             <input type="hidden" name="tab" value="actualizar">
             <div class="form-group">
-                <label for="codigo_cargar">Codigo del Estudiante</label>
-                <input type="text" id="codigo_cargar" name="codigo_cargar" placeholder="Ej: 200001" required>
+                <label for="codigo_cargar">Código del Estudiante</label>
+                <input type="text" id="codigo_cargar" name="codigo_cargar" placeholder="Ej: 200001" list="codigos_act_list" required>
+                <datalist id="codigos_act_list">
+                    {% for e in estudiantes %}
+                        <option value="{{ e.codigo }}">{{ e.nombre }}</option>
+                    {% endfor %}
+                </datalist>
             </div>
             <div class="form-buttons">
                 <button type="submit" class="btn btn-primary">Cargar</button>
@@ -134,13 +139,13 @@
 
     {% elif tab == 'desactivar' %}
         {% if estudiante_desactivar %}
-        <div class="form-inline" style="align-items: center">
+        <div class="form-inline">
             <div class="form-group">
                 <label>Estudiante</label>
                 <input type="text" value="{{ estudiante_desactivar.nombre }}" disabled>
             </div>
             <div class="form-group">
-                <label>Codigo</label>
+                <label>Código</label>
                 <input type="text" value="{{ estudiante_desactivar.codigo }}" disabled>
             </div>
             <div class="form-group">
@@ -152,6 +157,7 @@
                 <form method="POST" action="/configuracion/estudiantes/{{ estudiante_desactivar.codigo }}/desactivar">
                     <button type="submit" class="btn btn-danger">Confirmar</button>
                 </form>
+                <a href="/configuracion/estudiantes?tab=desactivar" class="btn btn-secondary">Cancelar</a>
                 {% else %}
                 <span class="btn btn-success" style="cursor: default">Ya inactivo</span>
                 {% endif %}
@@ -161,8 +167,13 @@
         <form method="GET" action="/configuracion/estudiantes" class="form-inline">
             <input type="hidden" name="tab" value="desactivar">
             <div class="form-group">
-                <label for="codigo_desactivar">Codigo del Estudiante</label>
-                <input type="text" id="codigo_desactivar" name="codigo_desactivar" placeholder="Ej: 200001" required>
+                <label for="codigo_desactivar">Código del Estudiante</label>
+                <input type="text" id="codigo_desactivar" name="codigo_desactivar" placeholder="Ej: 200001" list="codigos_desact_list" required>
+                <datalist id="codigos_desact_list">
+                    {% for e in estudiantes %}
+                        <option value="{{ e.codigo }}">{{ e.nombre }}</option>
+                    {% endfor %}
+                </datalist>
             </div>
             <div class="form-buttons">
                 <button type="submit" class="btn btn-primary">Cargar</button>
@@ -176,12 +187,12 @@
     <p class="table-info">
         Mostrando {{ estudiantes|length }} resultado{{ 's' if estudiantes|length != 1 else '' }}
         {%- if correo %} para "{{ correo }}"{% endif %}
-        {%- if pagina > 1 %} (pagina {{ pagina }}){% endif %}
+        {%- if pagina > 1 %} (página {{ pagina }}){% endif %}
     </p>
     <table>
         <thead>
             <tr>
-                <th>Codigo</th>
+                <th>Código</th>
                 <th>Tipo ID</th>
                 <th>ID</th>
                 <th>Nombre</th>
@@ -210,7 +221,7 @@
         {% else %}
         <span></span>
         {% endif %}
-        <span>Pagina {{ pagina }}</span>
+        <span>Página {{ pagina }}</span>
         {% if estudiantes|length == 20 %}
         <a href="/configuracion/estudiantes?tab={{ tab }}&pagina={{ pagina + 1 }}{% if correo %}&correo={{ correo }}{% endif %}{% if tipo_id %}&tipo_id={{ tipo_id }}{% endif %}{% if id_num %}&id={{ id_num }}{% endif %}">Siguiente &rarr;</a>
         {% else %}

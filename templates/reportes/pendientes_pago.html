@@ -2,7 +2,7 @@
 {% block titulo %}Reporte: Pendientes de Pago{% endblock %}
 {% block contenido %}
 
-<h2 style="margin-bottom: 1rem; color: #2c3e50;">Reportes</h2>
+<h2 style="margin-bottom: 1rem; color: #1e293b;">Reportes</h2>
 
 <div class="card">
     <div class="action-tabs">
@@ -43,10 +43,10 @@
 
 {% if resultados %}
 <div class="card" style="text-align: center;">
-    <h2 style="color: #555;">Estudiantes con Saldo Pendiente</h2>
-    <h1 style="color: #dc3545; font-size: 3em; margin: 10px 0;">{{ resultados|length }}</h1>
+    <h2 style="color: #5b6577;">Estudiantes con Saldo Pendiente</h2>
+    <h1 style="color: #dc2626; font-size: 3em; margin: 10px 0;">{{ resultados|length }}</h1>
     <p>En <strong>{{ programa_sel }}</strong> para el periodo <strong>{{ periodo_sel }}</strong></p>
-    <p style="color: #666;">Total pendiente: <strong style="color: #dc3545;">$ {{ "{:,.2f}".format(resultados|sum(attribute='saldo_pendiente')|float) }}</strong></p>
+    <p style="color: #5b6577;">Total pendiente: <strong style="color: #dc2626;">$ {{ "{:,.2f}".format(resultados|sum(attribute='saldo_pendiente')|float) }}</strong></p>
 </div>
 
 <div class="card">
@@ -64,7 +64,7 @@
             <tr>
                 <td>{{ r.codigo }}</td>
                 <td>{{ r.nombre }}</td>
-                <td style="color: #dc3545; font-weight: bold;">
+                <td style="color: #dc2626; font-weight: bold;">
                     $ {{ "{:,.2f}".format(r.saldo_pendiente|float) }}
                 </td>
             </tr>

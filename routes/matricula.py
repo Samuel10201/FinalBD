@@ -16,7 +16,7 @@ def verificar_acceso_asistente():
         return None
 
     if rol != 'ASISTENTE':
-        flash('Acceso denegado. Solo ASISTENTE puede acceder a matricula.', 'error')
+        flash('Acceso denegado. Solo ASISTENTE puede acceder a matrícula.', 'error')
         return redirect('/')
 
     return None

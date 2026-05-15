@@ -61,6 +61,20 @@ def obtener_usuario_por_correo(correo):
 
 # --- CRUD Usuarios ---
 
+def listar_usuarios_autocomplete(limite=500):
+    """Retorna nombre y correo de usuarios activos para datalists de autocompletado."""
+    conn = get_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT nombre, correo FROM usuario WHERE estado = 'ACTIVO' ORDER BY nombre LIMIT %s",
+                (limite,)
+            )
+            return cur.fetchall()
+    finally:
+        close_connection(conn)
+
+
 def listar_usuarios(buscar='', limite=20, offset=0):
     """Retorna lista de usuarios. Filtra por nombre, correo o id si se pasa buscar."""
     conn = get_connection()

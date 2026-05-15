@@ -1,8 +1,8 @@
 {% extends "base.html" %}
-{% block titulo %}Gestion de Usuarios{% endblock %}
+{% block titulo %}Gestión de Usuarios{% endblock %}
 {% block contenido %}
 
-<h2 style="margin-bottom: 1rem; color: #2c3e50;">Gestion de Usuarios</h2>
+<h2 style="margin-bottom: 1rem; color: #1e293b;">Gestión de Usuarios</h2>
 
 <div class="card">
     <div class="action-tabs">
@@ -17,7 +17,12 @@
         <input type="hidden" name="accion" value="buscar">
         <div class="form-group">
             <label for="buscar">Nombre, correo o ID</label>
-            <input type="text" id="buscar" name="buscar" value="{{ buscar }}" placeholder="Escriba para buscar...">
+            <input type="text" id="buscar" name="buscar" value="{{ buscar }}" placeholder="Escriba para buscar..." list="nombres_list">
+            <datalist id="nombres_list">
+                {% for u in usuarios_ac %}
+                    <option value="{{ u.nombre }}">
+                {% endfor %}
+            </datalist>
         </div>
         <div class="form-buttons">
             <button type="submit" class="btn btn-primary">Buscar</button>
@@ -43,20 +48,20 @@
             </select>
         </div>
         <div class="form-group">
-            <label for="id">Identificacion</label>
-            <input type="text" id="id" name="id" required>
+            <label for="id">Identificación</label>
+            <input type="text" id="id" name="id" required pattern="^[0-9]{1,15}$" title="Solo números, hasta 15 dígitos" minlength="1" maxlength="15">
         </div>
         <div class="form-group">
             <label for="nombre">Nombre</label>
-            <input type="text" id="nombre" name="nombre" required>
+            <input type="text" id="nombre" name="nombre" required minlength="1" maxlength="50">
         </div>
         <div class="form-group">
             <label for="correo">Correo</label>
-            <input type="email" id="correo" name="correo" required>
+            <input type="email" id="correo" name="correo" required maxlength="50" pattern="[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}" title="Formato válido: usuario@dominio.ext (ej: nombre@correo.com)">
         </div>
         <div class="form-group">
-            <label for="contrasena">Contrasena</label>
-            <input type="password" id="contrasena" name="contrasena" required>
+            <label for="contrasena">Contraseña</label>
+            <input type="password" id="contrasena" name="contrasena" required minlength="6" title="Mínimo 6 caracteres">
         </div>
         <div class="form-group">
             <label for="rol">Rol</label>
@@ -82,20 +87,21 @@
                 </select>
             </div>
             <div class="form-group">
-                <label>Identificacion</label>
+                <label>Identificación</label>
                 <input type="text" value="{{ seleccionado.id }}" disabled>
             </div>
             <div class="form-group">
                 <label for="nombre">Nombre</label>
-                <input type="text" id="nombre" name="nombre" value="{{ seleccionado.nombre }}" required>
+                <input type="text" id="nombre" name="nombre" value="{{ seleccionado.nombre }}" required minlength="1" maxlength="50">
             </div>
             <div class="form-group">
-                <label for="correo">Correo</label>
-                <input type="email" id="correo" name="correo" value="{{ seleccionado.correo }}" required>
+                <label>Correo</label>
+                <input type="hidden" name="correo" value="{{ seleccionado.correo }}">
+                <input type="email" value="{{ seleccionado.correo }}" disabled>
             </div>
             <div class="form-group">
-                <label for="contrasena">Contrasena</label>
-                <input type="password" id="contrasena" name="contrasena" placeholder="Dejar vacio para no cambiar">
+                <label for="contrasena">Contraseña</label>
+                <input type="password" id="contrasena" name="contrasena" placeholder="Dejar vacío para no cambiar" minlength="6">
             </div>
             <div class="form-group">
                 <label for="rol">Rol</label>
@@ -126,9 +132,14 @@
             <input type="hidden" name="accion" value="actualizar">
             <div class="form-group">
                 <label for="correo">Correo</label>
-                <input type="email" id="correo" name="correo" placeholder="correo@ejemplo.com">
+                <input type="text" id="correo" name="correo" placeholder="correo@ejemplo.com" list="correos_list">
+                <datalist id="correos_list">
+                    {% for u in usuarios_ac %}
+                        <option value="{{ u.correo }}">
+                    {% endfor %}
+                </datalist>
             </div>
-            <p style="align-self: flex-end; margin: 0 0.3rem 0.35rem; color: #999; font-style: italic;">o</p>
+            <p class="form-separator">o</p>
             <div class="form-group">
                 <label for="tipo_id">Tipo ID</label>
                 <select id="tipo_id" name="tipo_id">
@@ -143,8 +154,8 @@
                 </select>
             </div>
             <div class="form-group">
-                <label for="id">Identificacion</label>
-                <input type="text" id="id" name="id" placeholder="Numero de documento">
+                <label for="id">Identificación</label>
+                <input type="text" id="id" name="id" placeholder="Número de documento">
             </div>
             <div class="form-buttons">
                 <button type="submit" class="btn btn-primary">Cargar</button>
@@ -154,7 +165,7 @@
 
     {% elif accion == 'desactivar' %}
         {% if seleccionado %}
-        <div class="form-inline" style="align-items: center">
+        <div class="form-inline">
             <div class="form-group">
                 <label>Usuario</label>
                 <input type="text" value="{{ seleccionado.nombre }}" disabled>
@@ -176,6 +187,7 @@
                 <form method="POST" action="/admin/usuarios/{{ seleccionado.tipo_id.strip() }}/{{ seleccionado.id }}/desactivar">
                     <button type="submit" class="btn btn-danger">Confirmar</button>
                 </form>
+                <a href="/admin/usuarios?accion=desactivar" class="btn btn-secondary">Cancelar</a>
                 {% else %}
                 <span class="btn btn-success" style="cursor: default">Ya inactivo</span>
                 {% endif %}
@@ -186,9 +198,14 @@
             <input type="hidden" name="accion" value="desactivar">
             <div class="form-group">
                 <label for="correo">Correo</label>
-                <input type="email" id="correo" name="correo" placeholder="correo@ejemplo.com">
+                <input type="text" id="correo" name="correo" placeholder="correo@ejemplo.com" list="correos_desact_list">
+                <datalist id="correos_desact_list">
+                    {% for u in usuarios_ac %}
+                        <option value="{{ u.correo }}">
+                    {% endfor %}
+                </datalist>
             </div>
-            <p style="align-self: flex-end; margin: 0 0.3rem 0.35rem; color: #999; font-style: italic;">o</p>
+            <p class="form-separator">o</p>
             <div class="form-group">
                 <label for="tipo_id">Tipo ID</label>
                 <select id="tipo_id" name="tipo_id">
@@ -203,8 +220,8 @@
                 </select>
             </div>
             <div class="form-group">
-                <label for="id">Identificacion</label>
-                <input type="text" id="id" name="id" placeholder="Numero de documento">
+                <label for="id">Identificación</label>
+                <input type="text" id="id" name="id" placeholder="Número de documento">
             </div>
             <div class="form-buttons">
                 <button type="submit" class="btn btn-primary">Cargar</button>
@@ -214,11 +231,12 @@
     {% endif %}
 </div>
 
+{% if accion == 'buscar' %}
 <div class="card">
     <p class="table-info">
         Mostrando {{ usuarios|length }} resultado{{ 's' if usuarios|length != 1 else '' }}
         {%- if buscar %} para "{{ buscar }}"{% endif %}
-        {%- if pagina > 1 %} (pagina {{ pagina }}){% endif %}
+        {%- if pagina > 1 %} (página {{ pagina }}){% endif %}
     </p>
     <table>
         <thead>
@@ -250,7 +268,7 @@
         {% else %}
         <span></span>
         {% endif %}
-        <span>Pagina {{ pagina }}</span>
+        <span>Página {{ pagina }}</span>
         {% if usuarios|length == 20 %}
         <a href="/admin/usuarios?accion={{ accion }}&pagina={{ pagina + 1 }}{% if buscar %}&buscar={{ buscar }}{% endif %}">Siguiente &rarr;</a>
         {% else %}
@@ -258,5 +276,6 @@
         {% endif %}
     </div>
 </div>
+{% endif %}
 
 {% endblock %}

@@ -1,16 +1,16 @@
 {% extends "base.html" %}
 
-{% block titulo %}Matricula Individual{% endblock %}
+{% block titulo %}Matrícula Individual{% endblock %}
 
 {% block contenido %}
-<h2 style="margin-bottom: 1rem; color: #2c3e50;">Matricula Individual</h2>
-<p style="color: #666; margin-bottom: 1rem;">Inscribe un estudiante en un programa para un periodo especifico</p>
+<h2 style="margin-bottom: 1rem; color: #1e293b;">Matrícula Individual</h2>
+<p style="color: #5b6577; margin-bottom: 1rem;">Inscribe un estudiante en un programa para un periodo específico</p>
 
 <!-- Resultado exitoso -->
 {% if resultado_exitoso %}
     <div class="card">
-        <h3 style="margin-bottom: 1rem; color: #27ae60;">Matricula Creada Exitosamente</h3>
-        <p><strong>ID Matricula:</strong> {{ resultado_exitoso.matricula_id }}</p>
+        <h3 style="margin-bottom: 1rem; color: #16a34a;">Matrícula Creada Exitosamente</h3>
+        <p><strong>ID Matrícula:</strong> {{ resultado_exitoso.matricula_id }}</p>
         <p><strong>Estudiante:</strong> {{ resultado_exitoso.estudiante }}</p>
         <p><strong>Programa:</strong> {{ resultado_exitoso.programa }}</p>
         <p><strong>Periodo:</strong> {{ resultado_exitoso.periodo }}</p>
@@ -29,7 +29,7 @@
                 type="text"
                 id="cod_estudiante"
                 name="cod_estudiante"
-                placeholder="Codigo o nombre del estudiante"
+                placeholder="Código o nombre del estudiante"
                 list="estudiantes_list"
                 required>
             <datalist id="estudiantes_list">
@@ -37,11 +37,11 @@
                     <option value="{{ est.codigo }}">{{ est.nombre }}</option>
                 {% endfor %}
             </datalist>
-            <small style="color: #666; font-size: 0.85rem;">Codigo de estudiante (ej: 00123456)</small>
+            <small style="color: #5b6577; font-size: 0.85rem;">Código de estudiante (ej: 00123456)</small>
         </div>
 
         <div class="form-group">
-            <label for="prog_acad">Programa Academico *</label>
+            <label for="prog_acad">Programa Académico *</label>
             <input
                 type="text"
                 id="prog_acad"
@@ -62,7 +62,7 @@
                 type="text"
                 id="cod_periodo"
                 name="cod_periodo"
-                placeholder="Codigo del periodo (ej: 202210)"
+                placeholder="Código del periodo (ej: 202210)"
                 list="periodos_list"
                 required>
             <datalist id="periodos_list">
@@ -78,7 +78,7 @@
                 <select id="modalidad" name="modalidad" required>
                     <option value="">-- Seleccione --</option>
                     <option value="GLOBAL">Global</option>
-                    <option value="CREDITO">Por Credito</option>
+                    <option value="CREDITO">Por Crédito</option>
                 </select>
             </div>
 
@@ -97,7 +97,7 @@
 
         <div class="form-buttons" style="margin-top: 1rem; justify-content: flex-end;">
             <a href="/" class="btn btn-secondary">Cancelar</a>
-            <button type="submit" class="btn btn-primary">Crear Matricula</button>
+            <button type="submit" class="btn btn-primary">Crear Matrícula</button>
         </div>
     </form>
 </div>

@@ -2,7 +2,7 @@
 {% block titulo %}Reporte: Cartera{% endblock %}
 {% block contenido %}
 
-<h2 style="margin-bottom: 1rem; color: #2c3e50;">Reportes</h2>
+<h2 style="margin-bottom: 1rem; color: #1e293b;">Reportes</h2>
 
 <div class="card">
     <div class="action-tabs">
@@ -43,8 +43,8 @@
 
 {% if periodo_sel %}
 <div class="card" style="text-align: center;">
-    <h2 style="color: #555;">Total Cuentas por Cobrar (Cartera)</h2>
-    <h1 style="color: #dc3545; font-size: 3em; margin: 10px 0;">$ {{ "{:,.2f}".format(total|float) }}</h1>
+    <h2 style="color: #5b6577;">Total Cuentas por Cobrar (Cartera)</h2>
+    <h1 style="color: #dc2626; font-size: 3em; margin: 10px 0;">$ {{ "{:,.2f}".format(total|float) }}</h1>
     <p>Para el programa <strong>{{ programa_sel }}</strong> en el periodo <strong>{{ periodo_sel }}</strong></p>
 </div>
 
@@ -64,7 +64,7 @@
                 <tr>
                     <td>{{ r.codigo }}</td>
                     <td>{{ r.nombre }}</td>
-                    <td style="color: #dc3545; font-weight: bold;">
+                    <td style="color: #dc2626; font-weight: bold;">
                         $ {{ "{:,.2f}".format(r.saldo_pendiente|float) }}
                     </td>
                 </tr>

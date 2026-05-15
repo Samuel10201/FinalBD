@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "WebFetch(domain:www.uninorte.edu.co)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(python -c ' *)"
     ]
   }
 }

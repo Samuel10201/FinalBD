@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 
-{% block titulo %}Matricula Masiva{% endblock %}
+{% block titulo %}Matrícula Masiva{% endblock %}
 
 {% block contenido %}
-<h2 style="margin-bottom: 1rem; color: #2c3e50;">Matricula Masiva</h2>
-<p style="color: #666; margin-bottom: 1rem;">Inscribe automaticamente a todos los estudiantes activos de un programa para el periodo siguiente</p>
+<h2 style="margin-bottom: 1rem; color: #1e293b;">Matrícula Masiva</h2>
+<p style="color: #5b6577; margin-bottom: 1rem;">Inscribe automáticamente a todos los estudiantes activos de un programa para el periodo siguiente</p>
 
 <!-- Formulario de entrada -->
 <div class="card">
@@ -12,7 +12,7 @@
     <form method="POST">
         <div class="form-inline">
             <div class="form-group">
-                <label for="prog_acad">Programa Academico *</label>
+                <label for="prog_acad">Programa Académico *</label>
                 <input
                     type="text"
                     id="prog_acad"
@@ -34,7 +34,7 @@
                     type="text"
                     id="cod_periodo_destino"
                     name="cod_periodo_destino"
-                    placeholder="Codigo del periodo (ej: 202210)"
+                    placeholder="Código del periodo (ej: 202210)"
                     list="periodos_list"
                     value="{{ cod_periodo_destino_seleccionado or '' }}"
                     required>
@@ -43,7 +43,7 @@
                         <option value="{{ per.codigo }}">{{ per.descripcion }}</option>
                     {% endfor %}
                 </datalist>
-                <small style="color: #666; font-size: 0.85rem;">Periodo al que inscribiras los estudiantes</small>
+                <small style="color: #5b6577; font-size: 0.85rem;">Periodo al que inscribirás los estudiantes</small>
             </div>
         </div>
 
@@ -70,7 +70,7 @@
                 <table>
                     <thead>
                         <tr>
-                            <th>Codigo</th>
+                            <th>Código</th>
                             <th>Nombre Estudiante</th>
                             <th>Semestre Actual</th>
                             <th>Nuevo Semestre</th>
@@ -104,19 +104,19 @@
             <div style="display: flex; gap: 2rem; text-align: center;">
                 <div style="flex: 1;">
                     <h4>A Inscribir</h4>
-                    <p style="font-size: 2rem; font-weight: bold; color: #27ae60;">{{ preview_data.total_a_inscribir }}</p>
+                    <p style="font-size: 2rem; font-weight: bold; color: #16a34a;">{{ preview_data.total_a_inscribir }}</p>
                 </div>
                 {% if preview_data.total_excluidos > 0 %}
                 <div style="flex: 1;">
-                    <h4>Excluidos (Ultimo Semestre)</h4>
-                    <p style="font-size: 2rem; font-weight: bold; color: #f39c12;">{{ preview_data.total_excluidos }}</p>
+                    <h4>Excluidos (Último Semestre)</h4>
+                    <p style="font-size: 2rem; font-weight: bold; color: #d97706;">{{ preview_data.total_excluidos }}</p>
                 </div>
                 {% endif %}
             </div>
 
             {% if preview_data.total_a_inscribir > 0 %}
                 <div class="alert alert-warning" style="margin-top: 1rem;">
-                    <strong>Importante:</strong> Al confirmar, se crearan {{ preview_data.total_a_inscribir }} matriculas y se generaran los cobros correspondientes en las cuentas corrientes.
+                    <strong>Importante:</strong> Al confirmar, se crearán {{ preview_data.total_a_inscribir }} matrículas y se generarán los cobros correspondientes en las cuentas corrientes.
                 </div>
 
                 <form method="POST" style="margin-top: 1rem;">
@@ -124,16 +124,16 @@
                     <input type="hidden" name="cod_periodo_destino" value="{{ cod_periodo_destino_seleccionado }}">
                     <div class="form-buttons" style="justify-content: flex-end;">
                         <button type="submit" name="action" value="preview" class="btn btn-secondary">Cancelar</button>
-                        <button type="submit" name="action" value="crear" class="btn btn-danger">Confirmar Matricula Masiva</button>
+                        <button type="submit" name="action" value="crear" class="btn btn-danger">Confirmar Matrícula Masiva</button>
                     </div>
                 </form>
             {% else %}
                 <div class="alert alert-warning" style="margin-top: 1rem;">
-                    No hay estudiantes para inscribir (todos estan en el ultimo semestre).
+                    No hay estudiantes para inscribir (todos están en el último semestre).
                 </div>
             {% endif %}
         {% else %}
-            <p style="color: #666;">No hay datos para mostrar.</p>
+            <p style="color: #5b6577;">No hay datos para mostrar.</p>
         {% endif %}
     </div>
 {% endif %}

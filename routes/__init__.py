@@ -6,7 +6,7 @@ def login_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         if 'usuario' not in session:
-            flash('Debe iniciar sesion', 'error')
+            flash('Debe iniciar sesión', 'error')
             return redirect('/login')
         return f(*args, **kwargs)
     return decorated
@@ -17,12 +17,12 @@ def rol_requerido(*roles):
         @wraps(f)
         def decorated(*args, **kwargs):
             if 'usuario' not in session:
-                flash('Debe iniciar sesion', 'error')
+                flash('Debe iniciar sesión', 'error')
                 return redirect('/login')
             if session['usuario']['rol'] == 'ADMINISTRADOR':
                 return f(*args, **kwargs)
             if session['usuario']['rol'] not in roles:
-                flash('No tiene permisos para acceder a esta pagina', 'error')
+                flash('No tiene permisos para acceder a esta página', 'error')
                 return redirect('/login')
             return f(*args, **kwargs)
         return decorated

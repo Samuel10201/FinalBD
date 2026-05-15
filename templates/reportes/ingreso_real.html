@@ -2,7 +2,7 @@
 {% block titulo %}Reporte: Ingreso Real{% endblock %}
 {% block contenido %}
 
-<h2 style="margin-bottom: 1rem; color: #2c3e50;">Reportes</h2>
+<h2 style="margin-bottom: 1rem; color: #1e293b;">Reportes</h2>
 
 <div class="card">
     <div class="action-tabs">
@@ -43,8 +43,8 @@
 
 {% if periodo_sel %}
 <div class="card" style="text-align: center;">
-    <h2 style="color: #555;">Total Ingreso Real Recaudado</h2>
-    <h1 style="color: #007bff; font-size: 3em; margin: 10px 0;">$ {{ "{:,.2f}".format(total|float) }}</h1>
+    <h2 style="color: #5b6577;">Total Ingreso Real Recaudado</h2>
+    <h1 style="color: #3b6cb5; font-size: 3em; margin: 10px 0;">$ {{ "{:,.2f}".format(total|float) }}</h1>
     <p>Suma de pagos completados para el programa <strong>{{ programa_sel }}</strong> en el periodo <strong>{{ periodo_sel }}</strong></p>
 </div>
 {% endif %}

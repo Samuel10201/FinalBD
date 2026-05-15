@@ -11,7 +11,7 @@
     {% set rol = session.get('vista_rol') or session['usuario']['rol'] %}
     <nav class="navbar">
         <div class="navbar-top">
-            <div class="navbar-brand">Sistema Academico</div>
+            <div class="navbar-brand">Sistema Académico</div>
             <div class="navbar-right">
                 {% if session['usuario']['rol'] == 'ADMINISTRADOR' %}
                 <div class="admin-bar">
@@ -26,43 +26,48 @@
                     </form>
                 </div>
                 {% endif %}
+                {% if session['usuario']['rol'] == 'ADMINISTRADOR' %}
+                <span class="navbar-divider"></span>
+                {% endif %}
                 <div class="nav-user">
-                    <span>{{ session['usuario']['nombre'] }}</span>
-                    <a href="/logout">Cerrar sesion</a>
+                    <span class="user-avatar">{{ session['usuario']['nombre'][0] }}</span>
+                    <span class="user-name">{{ session['usuario']['nombre'] }}</span>
+                    <span class="nav-role">{{ session['usuario']['rol']|capitalize }}</span>
                 </div>
+                <a href="/logout" class="btn-logout">Cerrar sesión</a>
             </div>
         </div>
         <div class="navbar-bottom">
             <ul class="nav-links">
                 {% if rol == 'ADMINISTRADOR' %}
-                <li><a href="/admin/usuarios">Usuarios</a></li>
+                <li><a href="/admin/usuarios" class="{% if request.path.startswith('/admin/usuarios') %}active{% endif %}">Usuarios</a></li>
                 {% endif %}
 
                 {% if rol in ['ADMINISTRADOR', 'SUPERVISOR'] %}
-                <li><a href="/configuracion/estudiantes">Estudiantes</a></li>
-                <li><a href="/configuracion/programas">Programas</a></li>
-                <li><a href="/configuracion/asignaturas">Asignaturas</a></li>
-                <li><a href="/configuracion/plan-estudio">Plan de Estudio</a></li>
-                <li><a href="/configuracion/periodos">Periodos</a></li>
-                <li><a href="/configuracion/servicios">Servicios</a></li>
-                <li><a href="/configuracion/costos">Costos</a></li>
+                <li><a href="/configuracion/estudiantes" class="{% if request.path.startswith('/configuracion/estudiantes') %}active{% endif %}">Estudiantes</a></li>
+                <li><a href="/configuracion/programas" class="{% if request.path.startswith('/configuracion/programas') %}active{% endif %}">Programas</a></li>
+                <li><a href="/configuracion/asignaturas" class="{% if request.path.startswith('/configuracion/asignaturas') %}active{% endif %}">Asignaturas</a></li>
+                <li><a href="/configuracion/plan-estudio" class="{% if request.path.startswith('/configuracion/plan-estudio') %}active{% endif %}">Plan de Estudio</a></li>
+                <li><a href="/configuracion/periodos" class="{% if request.path.startswith('/configuracion/periodos') %}active{% endif %}">Periodos</a></li>
+                <li><a href="/configuracion/servicios" class="{% if request.path.startswith('/configuracion/servicios') %}active{% endif %}">Servicios</a></li>
+                <li><a href="/configuracion/costos" class="{% if request.path.startswith('/configuracion/costos') %}active{% endif %}">Costos</a></li>
                 {% endif %}
 
                 {% if rol in ['ADMINISTRADOR', 'ASISTENTE'] %}
-                <li><a href="/matricula/individual">Matricula</a></li>
-                <li><a href="/matricula/masiva">Matricula Masiva</a></li>
-                <li><a href="/pagos/registro">Registrar Pago</a></li>
-                <li><a href="/cuenta-corriente/consulta">Cuenta Corriente</a></li>
+                <li><a href="/matricula/individual" class="{% if request.path == '/matricula/individual' %}active{% endif %}">Matrícula</a></li>
+                <li><a href="/matricula/masiva" class="{% if request.path == '/matricula/masiva' %}active{% endif %}">Matrícula Masiva</a></li>
+                <li><a href="/pagos/registro" class="{% if request.path == '/pagos/registro' %}active{% endif %}">Registrar Pago</a></li>
+                <li><a href="/cuenta-corriente/consulta" class="{% if request.path.startswith('/cuenta-corriente') %}active{% endif %}">Cuenta Corriente</a></li>
                 {% endif %}
 
                 {% if rol == 'ESTUDIANTE' %}
-                <li><a href="/estudiante/perfil">Mi Perfil</a></li>
-                <li><a href="/estudiante/cuenta">Mi Cuenta</a></li>
-                <li><a href="/pagos/en-linea">Pagar en Linea</a></li>
+                <li><a href="/estudiante/perfil" class="{% if request.path == '/estudiante/perfil' %}active{% endif %}">Mi Perfil</a></li>
+                <li><a href="/estudiante/cuenta" class="{% if request.path == '/estudiante/cuenta' %}active{% endif %}">Mi Cuenta</a></li>
+                <li><a href="/pagos/en-linea" class="{% if request.path == '/pagos/en-linea' %}active{% endif %}">Pagar en Línea</a></li>
                 {% endif %}
 
                 {% if rol in ['ADMINISTRADOR', 'SUPERVISOR'] %}
-                <li><a href="/reportes/estudiantes-programa">Reportes</a></li>
+                <li><a href="/reportes/estudiantes-programa" class="{% if request.path.startswith('/reportes') %}active{% endif %}">Reportes</a></li>
                 {% endif %}
             </ul>
         </div>

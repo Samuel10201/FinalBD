@@ -2,7 +2,7 @@
 {% block titulo %}Reporte: Estudiantes por Programa{% endblock %}
 {% block contenido %}
 
-<h2 style="margin-bottom: 1rem; color: #2c3e50;">Reportes</h2>
+<h2 style="margin-bottom: 1rem; color: #1e293b;">Reportes</h2>
 
 <div class="card">
     <div class="action-tabs">
@@ -43,10 +43,10 @@
 
 {% if resultados %}
 <div class="card" style="text-align: center;">
-    <h2 style="color: #555;">Estudiantes Matriculados</h2>
-    <h1 style="color: #3498db; font-size: 3em; margin: 10px 0;">{{ resultados|length }}</h1>
+    <h2 style="color: #5b6577;">Estudiantes Matriculados</h2>
+    <h1 style="color: #3b6cb5; font-size: 3em; margin: 10px 0;">{{ resultados|length }}</h1>
     <p>En <strong>{{ programa_sel }}</strong> para el periodo <strong>{{ periodo_sel }}</strong></p>
-    <p style="color: #666;">Monto total esperado: <strong style="color: #28a745;">$ {{ "{:,.2f}".format(resultados|sum(attribute='monto')|float) }}</strong></p>
+    <p style="color: #5b6577;">Monto total esperado: <strong style="color: #16a34a;">$ {{ "{:,.2f}".format(resultados|sum(attribute='monto')|float) }}</strong></p>
 </div>
 
 <div class="card">

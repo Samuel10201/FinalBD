@@ -2,12 +2,12 @@
 {% block titulo %}Plan de Estudio{% endblock %}
 
 {% block contenido %}
-<h2 style="margin-bottom: 1rem; color: #2c3e50;">Plan de Estudio</h2>
+<h2 style="margin-bottom: 1rem; color: #1e293b;">Plan de Estudio</h2>
 
 <div class="card">
     <form method="GET" action="/configuracion/plan-estudio" class="form-inline">
         <div class="form-group">
-            <label for="programa">Programa Academico</label>
+            <label for="programa">Programa Académico</label>
             <input type="text" id="programa" name="programa" list="lista_programas" value="{{ prog_seleccionado or '' }}" required placeholder="Escriba o seleccione un programa...">
             <datalist id="lista_programas">
                 {% for p in programas %}
@@ -23,7 +23,7 @@
 
 {% if prog_seleccionado %}
 <div class="card">
-    <h3 style="margin-bottom: 1rem; color: #2c3e50;">{{ prog_seleccionado }}</h3>
+    <h3 style="margin-bottom: 1rem; color: #1e293b;">{{ prog_seleccionado }}</h3>
 
     <form method="POST" action="/configuracion/plan-estudio/asignar" class="form-inline">
         <input type="hidden" name="prog_academico" value="{{ prog_seleccionado }}">
@@ -41,7 +41,7 @@
             <input type="number" id="semestre" name="semestre" min="1" max="12" required>
         </div>
         <div class="form-buttons">
-            <button type="submit" class="btn btn-primary">Anadir</button>
+            <button type="submit" class="btn btn-primary">Añadir</button>
         </div>
     </form>
 
@@ -50,9 +50,9 @@
         <thead>
             <tr>
                 <th>Semestre</th>
-                <th>Codigo</th>
+                <th>Código</th>
                 <th>Nombre</th>
-                <th>Creditos</th>
+                <th>Créditos</th>
                 <th>Tipo</th>
                 <th>Acciones</th>
             </tr>

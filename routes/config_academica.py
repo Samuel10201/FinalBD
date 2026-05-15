@@ -138,8 +138,8 @@ def crear_programa():
             duracion = request.form['duracion']
             
             srv.crear_programa(nombre, facultad, modo, duracion)
-            flash('Programa creado exitosamente', 'success')
-            return redirect(url_for('config_academica.listar_programas'))
+            flash('Programa creado exitosamente. Agregue asignaturas al plan de estudio.', 'success')
+            return redirect(url_for('config_academica.listar_plan_estudio', programa=nombre))
         except Exception as e:
             flash(f'Error al crear programa: {str(e)}', 'error')
             

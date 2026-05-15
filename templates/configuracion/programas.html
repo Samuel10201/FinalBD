@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 
-{% block titulo %}Gestion de Programas Academicos{% endblock %}
+{% block titulo %}Gestión de Programas Académicos{% endblock %}
 
 {% block contenido %}
 
-<h2 style="margin-bottom: 1rem; color: #2c3e50;">Gestion de Programas Academicos</h2>
+<h2 style="margin-bottom: 1rem; color: #1e293b;">Gestión de Programas Académicos</h2>
 
 <div class="card">
     <div class="action-tabs">
@@ -40,11 +40,11 @@
     <form method="POST" action="/configuracion/programas/crear" class="form-inline">
         <div class="form-group">
             <label for="nombre">Nombre del Programa</label>
-            <input type="text" id="nombre" name="nombre" required>
+            <input type="text" id="nombre" name="nombre" minlength="5" maxlength="30" title="Mínimo 5 caracteres" required>
         </div>
         <div class="form-group">
             <label for="facultad">Facultad</label>
-            <input type="text" id="facultad" name="facultad" list="facultades_list" required>
+            <input type="text" id="facultad" name="facultad" list="facultades_list" minlength="5" maxlength="40" title="Mínimo 5 caracteres" required>
             <datalist id="facultades_list">
                 {% for f in programas | map(attribute='facultad') | unique %}
                     <option value="{{ f }}">
@@ -59,7 +59,7 @@
             </select>
         </div>
         <div class="form-group">
-            <label for="duracion">Duracion (Semestres)</label>
+            <label for="duracion">Duración (Semestres)</label>
             <input type="number" id="duracion" name="duracion" min="1" max="12" required>
         </div>
         <div class="form-buttons">
@@ -76,7 +76,7 @@
             </div>
             <div class="form-group">
                 <label for="facultad">Facultad</label>
-                <input type="text" id="facultad" name="facultad" list="facultades_list" value="{{ programa_edit.facultad }}" required>
+                <input type="text" id="facultad" name="facultad" list="facultades_list" value="{{ programa_edit.facultad }}" required maxlength="40">
                 <datalist id="facultades_list">
                     {% for f in programas | map(attribute='facultad') | unique %}
                         <option value="{{ f }}">
@@ -91,7 +91,7 @@
                 </select>
             </div>
             <div class="form-group">
-                <label for="duracion">Duracion (Semestres)</label>
+                <label for="duracion">Duración (Semestres)</label>
                 <input type="number" id="duracion" name="duracion" min="1" max="12" value="{{ programa_edit.duracion }}" required>
             </div>
             <div class="form-buttons">
@@ -130,7 +130,7 @@
                 <th>Nombre</th>
                 <th>Facultad</th>
                 <th>Modo</th>
-                <th>Duracion</th>
+                <th>Duración</th>
                 <th>Plan</th>
             </tr>
         </thead>

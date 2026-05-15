@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 
-{% block titulo %}Gestion de Asignaturas{% endblock %}
+{% block titulo %}Gestión de Asignaturas{% endblock %}
 
 {% block contenido %}
 
-<h2 style="margin-bottom: 1rem; color: #2c3e50;">Gestion de Asignaturas</h2>
+<h2 style="margin-bottom: 1rem; color: #1e293b;">Gestión de Asignaturas</h2>
 
 <div class="card">
     <div class="action-tabs">
@@ -18,7 +18,7 @@
     <form method="GET" action="/configuracion/asignaturas" class="form-inline">
         <input type="hidden" name="tab" value="buscar">
         <div class="form-group">
-            <label for="codigo">Codigo Asignatura</label>
+            <label for="codigo">Código Asignatura</label>
             <input type="text" id="codigo" name="codigo" value="{{ codigo_filtro or '' }}" placeholder="Ej: MAT101">
         </div>
         <div class="form-group">
@@ -44,15 +44,15 @@
     {% elif tab == 'crear' %}
     <form method="POST" action="/configuracion/asignaturas/crear" class="form-inline">
         <div class="form-group">
-            <label for="codigo">Codigo Asignatura</label>
-            <input type="text" id="codigo" name="codigo" pattern="^[A-Z]{3}[0-9]{3}$" title="Ejemplo: MAT101 (3 letras mayusculas + 3 numeros)" required>
+            <label for="codigo">Código Asignatura</label>
+            <input type="text" id="codigo" name="codigo" pattern="^[A-Z]{3}[0-9]{3}$" title="Ejemplo: MAT101 (3 letras mayúsculas + 3 números)" required>
         </div>
         <div class="form-group">
             <label for="nombre">Nombre</label>
-            <input type="text" id="nombre" name="nombre" required maxlength="30">
+            <input type="text" id="nombre" name="nombre" required minlength="3" maxlength="30">
         </div>
         <div class="form-group">
-            <label for="creditos">Creditos</label>
+            <label for="creditos">Créditos</label>
             <input type="number" id="creditos" name="creditos" min="0" max="10" required>
         </div>
         <div class="form-group">
@@ -63,11 +63,11 @@
             </select>
         </div>
         <div class="form-group">
-            <label for="descripcion">Descripcion</label>
-            <input type="text" id="descripcion" name="descripcion" required maxlength="100">
+            <label for="descripcion">Descripción</label>
+            <input type="text" id="descripcion" name="descripcion" required minlength="5" maxlength="100">
         </div>
         <div class="form-group">
-            <label for="prog_academico">Programa Academico</label>
+            <label for="prog_academico">Programa Académico</label>
             <input type="text" id="prog_academico" name="prog_academico" list="programas_list" required>
             <datalist id="programas_list">
                 {% for p in programas %}
@@ -88,7 +88,7 @@
         {% if asignatura_edit %}
         <form method="POST" action="/configuracion/asignaturas/{{ asignatura_edit.codigo }}/editar" class="form-inline">
             <div class="form-group">
-                <label>Codigo</label>
+                <label>Código</label>
                 <input type="text" value="{{ asignatura_edit.codigo }}" disabled>
             </div>
             <div class="form-group">
@@ -96,11 +96,11 @@
                 <input type="text" id="nombre" name="nombre" value="{{ asignatura_edit.nombre }}" required maxlength="30">
             </div>
             <div class="form-group">
-                <label for="creditos">Creditos</label>
+                <label for="creditos">Créditos</label>
                 <input type="number" id="creditos" name="creditos" min="0" max="10" value="{{ asignatura_edit.creditos }}" required>
             </div>
             <div class="form-group">
-                <label for="descripcion">Descripcion</label>
+                <label for="descripcion">Descripción</label>
                 <input type="text" id="descripcion" name="descripcion" value="{{ asignatura_edit.descripcion }}" required maxlength="100">
             </div>
             <div class="form-group">
@@ -119,8 +119,13 @@
         <form method="GET" action="/configuracion/asignaturas" class="form-inline">
             <input type="hidden" name="tab" value="actualizar">
             <div class="form-group">
-                <label for="codigo_cargar">Codigo de la Asignatura</label>
-                <input type="text" id="codigo_cargar" name="codigo_cargar" placeholder="Ej: MAT101" required>
+                <label for="codigo_cargar">Código de la Asignatura</label>
+                <input type="text" id="codigo_cargar" name="codigo_cargar" placeholder="Ej: MAT101" list="codigos_act_list" required>
+                <datalist id="codigos_act_list">
+                    {% for a in asignaturas %}
+                        <option value="{{ a.codigo }}">{{ a.nombre }}</option>
+                    {% endfor %}
+                </datalist>
             </div>
             <div class="form-buttons">
                 <button type="submit" class="btn btn-primary">Cargar</button>
@@ -130,13 +135,13 @@
 
     {% elif tab == 'eliminar' %}
         {% if asignatura_eliminar %}
-        <div class="form-inline" style="align-items: center">
+        <div class="form-inline" style="align-items: flex-end">
             <div class="form-group">
                 <label>Asignatura</label>
                 <input type="text" value="{{ asignatura_eliminar.nombre }}" disabled>
             </div>
             <div class="form-group">
-                <label>Codigo</label>
+                <label>Código</label>
                 <input type="text" value="{{ asignatura_eliminar.codigo }}" disabled>
             </div>
             <div class="form-group">
@@ -145,7 +150,7 @@
             </div>
             <div class="form-buttons">
                 <form method="POST" action="/configuracion/asignaturas/{{ asignatura_eliminar.codigo }}/eliminar">
-                    <button type="submit" class="btn btn-danger">Confirmar</button>
+                    <button type="submit" class="btn btn-danger">Confirmar Eliminación</button>
                 </form>
             </div>
         </div>
@@ -153,8 +158,13 @@
         <form method="GET" action="/configuracion/asignaturas" class="form-inline">
             <input type="hidden" name="tab" value="eliminar">
             <div class="form-group">
-                <label for="codigo_eliminar">Codigo de la Asignatura</label>
-                <input type="text" id="codigo_eliminar" name="codigo_eliminar" placeholder="Ej: MAT101" required>
+                <label for="codigo_eliminar">Código de la Asignatura</label>
+                <input type="text" id="codigo_eliminar" name="codigo_eliminar" placeholder="Ej: MAT101" list="codigos_elim_list" required>
+                <datalist id="codigos_elim_list">
+                    {% for a in asignaturas %}
+                        <option value="{{ a.codigo }}">{{ a.nombre }}</option>
+                    {% endfor %}
+                </datalist>
             </div>
             <div class="form-buttons">
                 <button type="submit" class="btn btn-primary">Cargar</button>
@@ -168,16 +178,16 @@
     <p class="table-info">
         Mostrando {{ asignaturas|length }} resultado{{ 's' if asignaturas|length != 1 else '' }}
         {%- if codigo_filtro %} para "{{ codigo_filtro }}"{% endif %}
-        {%- if pagina > 1 %} (pagina {{ pagina }}){% endif %}
+        {%- if pagina > 1 %} (página {{ pagina }}){% endif %}
     </p>
     <table>
         <thead>
             <tr>
-                <th>Codigo</th>
+                <th>Código</th>
                 <th>Nombre</th>
-                <th>Creditos</th>
+                <th>Créditos</th>
                 <th>Tipo</th>
-                <th>Descripcion</th>
+                <th>Descripción</th>
             </tr>
         </thead>
         <tbody>
@@ -198,7 +208,7 @@
         {% else %}
         <span></span>
         {% endif %}
-        <span>Pagina {{ pagina }}</span>
+        <span>Página {{ pagina }}</span>
         {% if asignaturas|length == 20 %}
         <a href="/configuracion/asignaturas?tab={{ tab }}&pagina={{ pagina + 1 }}{% if codigo_filtro %}&codigo={{ codigo_filtro }}{% endif %}{% if nombre_filtro %}&nombre={{ nombre_filtro }}{% endif %}{% if tipo_filtro %}&tipo={{ tipo_filtro }}{% endif %}">Siguiente &rarr;</a>
         {% else %}

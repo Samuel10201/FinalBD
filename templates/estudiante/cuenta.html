@@ -10,14 +10,14 @@
         <p>
             <strong>Hola, {{ estudiante.nombre }}. Tu balance actual es:</strong><br>
             {% if saldo >= 0 %}
-                <span style="color: green; font-weight: bold; font-size: 1.2em;">${{ "{:,.2f}".format(saldo) }} (Estás al día)</span>
+                <span style="color: #16a34a; font-weight: bold; font-size: 1.2em;">${{ "{:,.2f}".format(saldo) }} (Estás al día)</span>
             {% else %}
-                <span style="color: red; font-weight: bold; font-size: 1.2em;">${{ "{:,.2f}".format(saldo) }} (Saldo Pendiente)</span>
+                <span style="color: #dc2626; font-weight: bold; font-size: 1.2em;">${{ "{:,.2f}".format(saldo) }} (Saldo Pendiente)</span>
             {% endif %}
         </p>
 
         <table border="1" style="width: 100%; border-collapse: collapse; margin-top: 20px;">
-            <thead style="background-color: #004085; color: white;">
+            <thead style="background-color: #3b6cb5; color: white;">
                 <tr>
                     <th>Fecha</th>
                     <th>Periodo</th>
@@ -34,9 +34,9 @@
                     <td>{{ mov.descripcion_mov }}</td>
                     <td>
                         {% if mov.grupo == 'COBRO' %}
-                            <span style="color: red; font-weight: bold;">Cargo</span>
+                            <span style="color: #dc2626; font-weight: bold;">Cargo</span>
                         {% else %}
-                            <span style="color: green; font-weight: bold;">Abono</span>
+                            <span style="color: #16a34a; font-weight: bold;">Abono</span>
                         {% endif %}
                     </td>
                     <td>${{ "{:,.2f}".format(mov.valor) }}</td>

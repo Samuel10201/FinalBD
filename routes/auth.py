@@ -4,6 +4,7 @@ from services.auth_service import (
     obtener_usuario,
     obtener_usuario_por_correo,
     listar_usuarios as service_listar,
+    listar_usuarios_autocomplete,
     crear_usuario as service_crear,
     actualizar_usuario as service_actualizar,
     desactivar_usuario as service_desactivar
@@ -47,7 +48,7 @@ def login():
             flash(f'Hola, {usuario["nombre"]}', 'success')
             return redirect(DESTINOS_POR_ROL.get(usuario['rol'], '/'))
 
-        flash('Correo o contrasena incorrectos', 'error')
+        flash('Correo o contraseña incorrectos', 'error')
 
     return render_template('auth/login.html')
 
@@ -55,7 +56,7 @@ def login():
 @auth_bp.route('/logout')
 def logout():
     session.clear()
-    flash('Sesion cerrada', 'success')
+    flash('Sesión cerrada', 'success')
     return redirect('/login')
 
 
@@ -86,6 +87,7 @@ def listar_usuarios():
     limite = 20
     offset = (pagina - 1) * limite
     usuarios = service_listar(buscar=buscar, limite=limite, offset=offset)
+    usuarios_ac = listar_usuarios_autocomplete()
 
     seleccionado = None
     correo_sel = request.args.get('correo', '').strip()
@@ -94,12 +96,14 @@ def listar_usuarios():
             seleccionado = obtener_usuario_por_correo(correo_sel)
         elif tipo_id_sel and id_sel:
             seleccionado = obtener_usuario(tipo_id_sel, id_sel)
+        elif tipo_id_sel or id_sel:
+            flash('Se requieren ambos campos: Tipo ID e Identificación', 'error')
         if (correo_sel or (tipo_id_sel and id_sel)) and not seleccionado:
             flash('Usuario no encontrado', 'error')
 
     return render_template('admin/usuarios.html',
-        usuarios=usuarios, buscar=buscar, accion=accion,
-        pagina=pagina, seleccionado=seleccionado)
+        usuarios=usuarios, usuarios_ac=usuarios_ac, buscar=buscar,
+        accion=accion, pagina=pagina, seleccionado=seleccionado)
 
 
 @auth_bp.route('/admin/usuarios/crear', methods=['GET', 'POST'])
