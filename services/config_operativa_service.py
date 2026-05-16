@@ -3,24 +3,22 @@ from models.db import get_connection, close_connection
 
 # --- Periodos ---
 
-def listar_periodos():
-    """Retorna lista de todos los periodos academicos."""
-
+def listar_periodos(codigo=None, estado=None):
+    """Retorna lista de periodos academicos con filtros opcionales."""
     conn = get_connection()
-
     try:
         with conn.cursor() as cur:
-
-            cur.execute(
-                """
-                SELECT *
-                FROM periodo
-                ORDER BY codigo DESC
-                """
-            )
-
+            query = "SELECT * FROM periodo WHERE 1=1 "
+            params = []
+            if codigo:
+                query += "AND codigo ILIKE %s "
+                params.append(f"{codigo}%")
+            if estado:
+                query += "AND estado = %s "
+                params.append(estado)
+            query += "ORDER BY codigo DESC"
+            cur.execute(query, tuple(params))
             return cur.fetchall()
-
     finally:
         close_connection(conn)
 
@@ -144,14 +142,24 @@ def validar_fechas_periodo(fecha_inicio, fecha_fin):
 
 # --- Servicios (codigos de detalle) ---
 
-def listar_servicios():
-    """Retorna lista de todos los servicios."""
+def listar_servicios(codigo=None, grupo=None, estado=None):
+    """Retorna lista de servicios con filtros opcionales."""
     conn = get_connection()
     try:
         with conn.cursor() as cur:
-            cur.execute(
-                "SELECT * FROM servicio ORDER BY codigo"
-            )
+            query = "SELECT * FROM servicio WHERE 1=1 "
+            params = []
+            if codigo:
+                query += "AND codigo ILIKE %s "
+                params.append(f"{codigo}%")
+            if grupo:
+                query += "AND grupo = %s "
+                params.append(grupo)
+            if estado:
+                query += "AND estado = %s "
+                params.append(estado)
+            query += "ORDER BY codigo"
+            cur.execute(query, tuple(params))
             return cur.fetchall()
     finally:
         close_connection(conn)
