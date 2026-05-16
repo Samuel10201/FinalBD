@@ -5,27 +5,132 @@ from models.db import get_connection, close_connection
 
 def listar_periodos():
     """Retorna lista de todos los periodos academicos."""
-    pass
+
+    conn = get_connection()
+
+    try:
+        with conn.cursor() as cur:
+
+            cur.execute(
+                """
+                SELECT *
+                FROM periodo
+                ORDER BY codigo DESC
+                """
+            )
+
+            return cur.fetchall()
+
+    finally:
+        close_connection(conn)
 
 
 def obtener_periodo(codigo):
     """Retorna un periodo por su codigo."""
-    pass
+
+    conn = get_connection()
+
+    try:
+        with conn.cursor() as cur:
+
+            cur.execute(
+                """
+                SELECT *
+                FROM periodo
+                WHERE codigo = %s
+                """,
+                (codigo,)
+            )
+
+            return cur.fetchone()
+
+    finally:
+        close_connection(conn)
 
 
 def crear_periodo(codigo, descripcion, fecha_inicio, fecha_fin):
-    """Crea un periodo. Valida formato YYYYXX (XX: 00,10,20,30,40) y que no se solape con otros."""
-    pass
+    """Crea un periodo."""
+
+    conn = get_connection()
+
+    try:
+        with conn:
+            with conn.cursor() as cur:
+
+                cur.execute(
+                    """
+                    INSERT INTO periodo (
+                        codigo,
+                        descripcion,
+                        fecha_inicio,
+                        fecha_fin,
+                        estado
+                    )
+                    VALUES (%s, %s, %s, %s, 'ACTIVO')
+                    """,
+                    (
+                        codigo,
+                        descripcion,
+                        fecha_inicio,
+                        fecha_fin
+                    )
+                )
+
+    finally:
+        close_connection(conn)
 
 
 def actualizar_periodo(codigo, descripcion, fecha_inicio, fecha_fin, estado):
-    """Actualiza los datos de un periodo."""
-    pass
+    """Actualiza un periodo."""
+
+    conn = get_connection()
+
+    try:
+        with conn:
+            with conn.cursor() as cur:
+
+                cur.execute(
+                    """
+                    UPDATE periodo
+                    SET descripcion = %s,
+                        fecha_inicio = %s,
+                        fecha_fin = %s,
+                        estado = %s
+                    WHERE codigo = %s
+                    """,
+                    (
+                        descripcion,
+                        fecha_inicio,
+                        fecha_fin,
+                        estado,
+                        codigo
+                    )
+                )
+
+    finally:
+        close_connection(conn)
 
 
 def desactivar_periodo(codigo):
-    """Desactiva un periodo. No permite si tiene matriculas asociadas."""
-    pass
+    """Desactiva un periodo."""
+
+    conn = get_connection()
+
+    try:
+        with conn:
+            with conn.cursor() as cur:
+
+                cur.execute(
+                    """
+                    UPDATE periodo
+                    SET estado = 'INACTIVO'
+                    WHERE codigo = %s
+                    """,
+                    (codigo,)
+                )
+
+    finally:
+        close_connection(conn)
 
 
 def validar_codigo_periodo(codigo):
@@ -37,51 +142,208 @@ def validar_fechas_periodo(fecha_inicio, fecha_fin):
     """Valida que las fechas no se solapen con periodos existentes."""
     pass
 
-
 # --- Servicios (codigos de detalle) ---
 
 def listar_servicios():
     """Retorna lista de todos los servicios."""
-    pass
+    conn = get_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT * FROM servicio ORDER BY codigo"
+            )
+            return cur.fetchall()
+    finally:
+        close_connection(conn)
 
 
 def obtener_servicio(codigo):
     """Retorna un servicio por su codigo."""
-    pass
+    conn = get_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT * FROM servicio WHERE codigo = %s",
+                (codigo,)
+            )
+            return cur.fetchone()
+    finally:
+        close_connection(conn)
 
 
 def crear_servicio(codigo, grupo, descripcion):
-    """Crea un servicio. Grupo debe ser COBRO o PAGO."""
-    pass
+    """Crea un servicio."""
+    conn = get_connection()
+    try:
+        with conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    INSERT INTO servicio (
+                        codigo,
+                        grupo,
+                        estado,
+                        descripcion
+                    )
+                    VALUES (%s, %s, 'ACTIVO', %s)
+                    """,
+                    (codigo, grupo, descripcion)
+                )
+    finally:
+        close_connection(conn)
 
 
 def actualizar_servicio(codigo, grupo, descripcion, estado):
-    """Actualiza los datos de un servicio."""
-    pass
+    """Actualiza un servicio."""
+    conn = get_connection()
+    try:
+        with conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    UPDATE servicio
+                    SET grupo = %s,
+                        descripcion = %s,
+                        estado = %s
+                    WHERE codigo = %s
+                    """,
+                    (grupo, descripcion, estado, codigo)
+                )
+    finally:
+        close_connection(conn)
 
 
 def desactivar_servicio(codigo):
-    """Desactiva un servicio. No permite si aparece en cuentas corrientes."""
-    pass
-
+    """Desactiva un servicio."""
+    conn = get_connection()
+    try:
+        with conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    UPDATE servicio
+                    SET estado = 'INACTIVO'
+                    WHERE codigo = %s
+                    """,
+                    (codigo,)
+                )
+    finally:
+        close_connection(conn)
+        
 
 # --- Costos (reglas de cobro) ---
 
 def listar_costos():
-    """Retorna lista de todos los costos (programa + periodo)."""
-    pass
+    """Retorna lista de todos los costos."""
+
+    conn = get_connection()
+
+    try:
+        with conn.cursor() as cur:
+
+            cur.execute(
+                """
+                SELECT *
+                FROM costo
+                ORDER BY cod_periodo DESC
+                """
+            )
+
+            return cur.fetchall()
+
+    finally:
+        close_connection(conn)
 
 
 def obtener_costo(prog_academico, cod_periodo):
-    """Retorna un costo por su llave compuesta."""
-    pass
+    """Retorna un costo."""
+
+    conn = get_connection()
+
+    try:
+        with conn.cursor() as cur:
+
+            cur.execute(
+                """
+                SELECT *
+                FROM costo
+                WHERE prog_academico = %s
+                AND cod_periodo = %s
+                """,
+                (prog_academico, cod_periodo)
+            )
+
+            return cur.fetchone()
+
+    finally:
+        close_connection(conn)
 
 
-def crear_o_actualizar_costo(prog_academico, cod_periodo, costo_credito, costo_global):
-    """Upsert: si la combinacion existe, actualiza. Si no, inserta."""
-    pass
+def crear_o_actualizar_costo(
+    prog_academico,
+    cod_periodo,
+    costo_credito,
+    costo_global
+):
+    """Inserta o actualiza un costo."""
+
+    conn = get_connection()
+
+    try:
+        with conn:
+            with conn.cursor() as cur:
+
+                cur.execute(
+                    """
+                    INSERT INTO costo (
+                        prog_academico,
+                        cod_periodo,
+                        costo_credito,
+                        costo_global
+                    )
+                    VALUES (%s, %s, %s, %s)
+
+                    ON CONFLICT (
+                        prog_academico,
+                        cod_periodo
+                    )
+
+                    DO UPDATE SET
+                        costo_credito = EXCLUDED.costo_credito,
+                        costo_global = EXCLUDED.costo_global
+                    """,
+                    (
+                        prog_academico,
+                        cod_periodo,
+                        costo_credito,
+                        costo_global
+                    )
+                )
+
+    finally:
+        close_connection(conn)
 
 
 def eliminar_costo(prog_academico, cod_periodo):
-    """Elimina un costo. Solo si no hay matriculas que lo hayan usado."""
-    pass
+    """Elimina un costo."""
+
+    conn = get_connection()
+
+    try:
+        with conn:
+            with conn.cursor() as cur:
+
+                cur.execute(
+                    """
+                    DELETE FROM costo
+                    WHERE prog_academico = %s
+                    AND cod_periodo = %s
+                    """,
+                    (
+                        prog_academico,
+                        cod_periodo
+                    )
+                )
+
+    finally:
+        close_connection(conn)
