@@ -1,113 +1,178 @@
-{% extends "crud_base.html" %}
+{% extends "base.html" %}
 
 {% block titulo %}Costos{% endblock %}
 
-{% block titulo_formulario %}
-    Crear o Actualizar Costo
-{% endblock %}
+{% block contenido %}
 
-{% block form_action %}
-    /configuracion/costos/crear
-{% endblock %}
+<h2 style="margin-bottom: 1rem; color: #1e293b;">Costos</h2>
 
-{% block campos %}
-
-    <div class="form-group">
-        <label for="prog_academico">Programa Academico</label>
-        <input
-            type="text"
-            id="prog_academico"
-            name="prog_academico"
-            list="programas_list"
-            required
-        >
-        <datalist id="programas_list">
-            {% for p in programas %}
-            <option value="{{ p.nombre }}">
-            {% endfor %}
-        </datalist>
-    </div>
-
-    <div class="form-group">
-        <label for="cod_periodo">Periodo</label>
-        <input
-            type="text"
-            id="cod_periodo"
-            name="cod_periodo"
-            maxlength="6"
-            list="periodos_list"
-            required
-        >
-        <datalist id="periodos_list">
-            {% for p in periodos %}
-            <option value="{{ p.codigo }}">{{ p.descripcion }}</option>
-            {% endfor %}
-        </datalist>
-    </div>
-
-    <div class="form-group">
-        <label for="costo_credito">Costo Credito</label>
-        <input
-            type="number"
-            step="0.01"
-            min="0"
-            id="costo_credito"
-            name="costo_credito"
-            required
-        >
-    </div>
-
-    <div class="form-group">
-        <label for="costo_global">Costo Global</label>
-        <input
-            type="number"
-            step="0.01"
-            min="0"
-            id="costo_global"
-            name="costo_global"
-            required
-        >
-    </div>
-
-{% endblock %}
-
-{% block titulo_tabla %}
-    Costos Registrados
-{% endblock %}
-
-{% block columnas %}
-    <th>Programa</th>
-    <th>Periodo</th>
-    <th>Costo Credito</th>
-    <th>Costo Global</th>
-    <th>Acciones</th>
-{% endblock %}
-
-{% block filas %}
-
-    {% for c in costos %}
-    <tr>
-        <td>{{ c.prog_academico }}</td>
-        <td>{{ c.cod_periodo }}</td>
-        <td>$ {{ "{:,.2f}".format(c.costo_credito|float) }}</td>
-        <td>$ {{ "{:,.2f}".format(c.costo_global|float) }}</td>
-        <td>
-            <form
-                action="/configuracion/costos/{{ c.prog_academico }}/{{ c.cod_periodo }}/eliminar"
-                method="POST"
-                style="display:inline;"
+<div class="card">
+    <h3 style="margin-bottom: 0.75rem;">Crear o Actualizar Costo</h3>
+    <form method="POST" action="/configuracion/costos/crear" class="form-inline" id="form_costo">
+        <div class="form-group">
+            <label for="prog_academico">Programa Academico</label>
+            <input
+                type="text"
+                id="prog_academico"
+                name="prog_academico"
+                list="programas_list"
+                required
             >
-                <button
-                    type="submit"
-                    class="btn btn-danger"
-                    style="padding: 2px 8px; font-size: 0.8rem;"
-                    onclick="return confirm('¿Desea eliminar este costo?');"
-                >
-                    Eliminar
-                </button>
-            </form>
-        </td>
-    </tr>
-    {% endfor %}
+            <datalist id="programas_list">
+                {% for p in programas %}
+                <option value="{{ p.nombre }}">
+                {% endfor %}
+            </datalist>
+        </div>
+
+        <div class="form-group">
+            <label for="cod_periodo">Periodo</label>
+            <input
+                type="text"
+                id="cod_periodo"
+                name="cod_periodo"
+                maxlength="6"
+                list="periodos_list"
+                required
+            >
+            <datalist id="periodos_list">
+                {% for p in periodos %}
+                <option value="{{ p.codigo }}">{{ p.descripcion }}</option>
+                {% endfor %}
+            </datalist>
+        </div>
+
+        <div class="form-group">
+            <label for="costo_credito">Costo Credito</label>
+            <input
+                type="number"
+                step="0.01"
+                min="1"
+                max="9999999999.99"
+                id="costo_credito"
+                name="costo_credito"
+                required
+            >
+        </div>
+
+        <div class="form-group">
+            <label for="costo_global">Costo Global</label>
+            <input
+                type="number"
+                step="0.01"
+                min="1"
+                max="9999999999.99"
+                id="costo_global"
+                name="costo_global"
+                required
+            >
+        </div>
+
+        <div class="form-buttons">
+            <button type="submit" class="btn btn-primary">Guardar</button>
+        </div>
+    </form>
+</div>
+
+<div class="card" id="card_tabla">
+    <h3 style="margin-bottom: 0.75rem;">Costos Registrados</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Programa</th>
+                <th>Periodo</th>
+                <th>Costo Credito</th>
+                <th>Costo Global</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for c in costos %}
+            <tr>
+                <td>{{ c.prog_academico }}</td>
+                <td>{{ c.cod_periodo }}</td>
+                <td>$ {{ "{:,.2f}".format(c.costo_credito|float) }}</td>
+                <td>$ {{ "{:,.2f}".format(c.costo_global|float) }}</td>
+                <td>
+                    <button
+                        type="button"
+                        class="btn btn-danger"
+                        style="padding: 2px 8px; font-size: 0.8rem;"
+                        onclick="confirmarEliminacion('{{ c.prog_academico }}', '{{ c.cod_periodo }}')"
+                    >
+                        Eliminar
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="card" id="card_confirmacion" style="display: none;">
+    <h3 style="margin-bottom: 0.75rem;">Confirmar Eliminación</h3>
+    <p style="margin-bottom: 1rem;">
+        ¿Desea eliminar el costo del programa <strong id="conf_programa"></strong>
+        para el periodo <strong id="conf_periodo"></strong>?
+    </p>
+    <div class="form-buttons">
+        <form id="form_eliminar" method="POST" style="display: inline;">
+            <button type="submit" class="btn btn-danger">Confirmar</button>
+        </form>
+        <button type="button" class="btn btn-secondary" onclick="cancelarEliminacion()">Cancelar</button>
+    </div>
+</div>
+
+<script>
+function confirmarEliminacion(programa, periodo) {
+    document.getElementById('conf_programa').textContent = programa;
+    document.getElementById('conf_periodo').textContent = periodo;
+    document.getElementById('form_eliminar').action =
+        '/configuracion/costos/' + encodeURIComponent(programa) + '/' + encodeURIComponent(periodo) + '/eliminar';
+    document.getElementById('card_tabla').style.display = 'none';
+    document.getElementById('card_confirmacion').style.display = '';
+}
+
+function cancelarEliminacion() {
+    document.getElementById('card_tabla').style.display = '';
+    document.getElementById('card_confirmacion').style.display = 'none';
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    var progInput = document.getElementById('prog_academico');
+    var periodoInput = document.getElementById('cod_periodo');
+
+    progInput.addEventListener('input', function() {
+        this.value = this.value.replace(/[0-9]/g, '');
+    });
+
+    periodoInput.addEventListener('input', function() {
+        this.value = this.value.replace(/\D/g, '');
+    });
+
+    document.getElementById('form_costo').addEventListener('submit', function(e) {
+        if (/[0-9]/.test(progInput.value)) {
+            e.preventDefault();
+            alert('El programa académico no debe contener números.');
+            return;
+        }
+        if (!progInput.value.trim()) {
+            e.preventDefault();
+            alert('Seleccione un programa académico.');
+            return;
+        }
+        if (/\D/.test(periodoInput.value)) {
+            e.preventDefault();
+            alert('El periodo debe contener solo números.');
+            return;
+        }
+        if (!periodoInput.value.trim()) {
+            e.preventDefault();
+            alert('Seleccione un periodo.');
+            return;
+        }
+    });
+});
+</script>
 
 {% endblock %}

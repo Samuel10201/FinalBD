@@ -50,7 +50,7 @@
         </div>
         <div class="form-group">
             <label for="descripcion">Descripcion</label>
-            <input type="text" id="descripcion" name="descripcion" maxlength="100" placeholder="Ej: Segundo semestre 2026" required>
+            <input type="text" id="descripcion" name="descripcion" maxlength="100" readonly placeholder="Se genera del código" required>
         </div>
         <div class="form-group">
             <label for="fecha_inicio">Fecha Inicio</label>
@@ -74,7 +74,7 @@
             </div>
             <div class="form-group">
                 <label for="descripcion">Descripcion</label>
-                <input type="text" id="descripcion" name="descripcion" value="{{ periodo_edit.descripcion }}" maxlength="100" required>
+                <input type="text" id="descripcion" name="descripcion" value="{{ periodo_edit.descripcion }}" maxlength="100" readonly required>
             </div>
             <div class="form-group">
                 <label for="fecha_inicio">Fecha Inicio</label>
@@ -193,18 +193,65 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    ['form_crear_periodo', 'form_editar_periodo'].forEach(function(id) {
-        var form = document.getElementById(id);
-        if (!form) return;
-        form.addEventListener('submit', function(e) {
-            var inicio = form.querySelector('[name="fecha_inicio"]').value;
-            var fin = form.querySelector('[name="fecha_fin"]').value;
-            if (fin < inicio) {
-                e.preventDefault();
-                alert('La fecha de fin no puede ser anterior a la fecha de inicio.');
-            }
+    var descMap = {'00':'Periodo Libre','10':'Primer Semestre','20':'Intersemestral','30':'Segundo Semestre','40':'Vacacional Final'};
+
+    function generarDesc(codigo) {
+        if (codigo.length === 6) {
+            var anio = codigo.substring(0,4);
+            var suf = codigo.substring(4,6);
+            if (descMap[suf]) return descMap[suf] + ' ' + anio;
+        }
+        return '';
+    }
+
+    function validarFechas(form, anio) {
+        var inicio = form.querySelector('[name="fecha_inicio"]').value;
+        var fin = form.querySelector('[name="fecha_fin"]').value;
+        if (inicio && !inicio.startsWith(anio)) {
+            alert('La fecha de inicio debe corresponder al año ' + anio + '.');
+            return false;
+        }
+        if (fin && !fin.startsWith(anio)) {
+            alert('La fecha de fin debe corresponder al año ' + anio + '.');
+            return false;
+        }
+        if (inicio && fin && fin < inicio) {
+            alert('La fecha de fin no puede ser anterior a la fecha de inicio.');
+            return false;
+        }
+        return true;
+    }
+
+    var formCrear = document.getElementById('form_crear_periodo');
+    if (formCrear) {
+        var codInput = formCrear.querySelector('[name="codigo"]');
+        var descInput = formCrear.querySelector('[name="descripcion"]');
+        codInput.addEventListener('input', function() {
+            this.value = this.value.replace(/\D/g, '').substring(0,6);
+            descInput.value = generarDesc(this.value);
         });
-    });
+        formCrear.addEventListener('submit', function(e) {
+            if (!/^[0-9]{4}(00|10|20|30|40)$/.test(codInput.value)) {
+                e.preventDefault();
+                alert('Ingrese el código del periodo (4 dígitos del año + 00, 10, 20, 30 o 40).');
+                return;
+            }
+            if (!validarFechas(formCrear, codInput.value.substring(0,4))) { e.preventDefault(); }
+        });
+    }
+
+    var formEditar = document.getElementById('form_editar_periodo');
+    if (formEditar) {
+        var codDisabled = formEditar.querySelector('input[disabled]');
+        var descEdit = formEditar.querySelector('[name="descripcion"]');
+        if (codDisabled && descEdit) {
+            descEdit.value = generarDesc(codDisabled.value.trim());
+        }
+        formEditar.addEventListener('submit', function(e) {
+            var anio = codDisabled ? codDisabled.value.trim().substring(0,4) : '';
+            if (anio && !validarFechas(formEditar, anio)) { e.preventDefault(); }
+        });
+    }
 });
 </script>
 

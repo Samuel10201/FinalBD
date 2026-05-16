@@ -308,9 +308,13 @@ def asignar_asignatura_plan():
     """Asigna una asignatura existente a un programa con su semestre."""
     try:
         prog_academico = request.form['prog_academico']
-        cod_asignatura = request.form['cod_asignatura']
+        cod_asignatura = request.form['cod_asignatura'].strip()
         semestre = request.form['semestre']
-        
+
+        if not srv.obtener_asignatura(cod_asignatura):
+            flash('Asignatura no existente.', 'error')
+            return redirect(url_for('config_academica.listar_plan_estudio', programa=prog_academico))
+
         srv.asignar_asignatura_plan(prog_academico, cod_asignatura, semestre)
         flash('Asignatura agregada al plan de estudio', 'success')
     except Exception as e:
