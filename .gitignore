@@ -27,5 +27,8 @@ Thumbs.db
 desktop.ini
 
 practica/
+contexto/
+sql/reseed.py
+sql/migrate_tildes.py
 
 credenciales_prueba.txt

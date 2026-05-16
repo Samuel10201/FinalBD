@@ -13,6 +13,7 @@
         <a href="/configuracion/servicios?tab=actualizar" class="{% if tab == 'actualizar' %}active{% endif %}">Actualizar</a>
         <a href="/configuracion/servicios?tab=desactivar" class="{% if tab == 'desactivar' %}active{% endif %}">Desactivar</a>
     </div>
+    <div id="error_msg" class="alert alert-error" style="display:none;"></div>
 
     {% if tab == 'buscar' or not tab %}
     <form method="GET" action="/configuracion/servicios" class="form-inline">
@@ -169,33 +170,49 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    var errorDiv = document.getElementById('error_msg');
+
+    function mostrarError(msg) {
+        errorDiv.textContent = msg;
+        errorDiv.style.display = '';
+    }
+
+    function ocultarError() {
+        errorDiv.style.display = 'none';
+    }
+
     document.querySelectorAll('input[name="codigo"]:not([disabled])').forEach(function(el) {
         el.addEventListener('input', function() {
             this.value = this.value.replace(/[^A-Za-z]/g, '').toUpperCase();
+            ocultarError();
         });
     });
+
     var formCrear = document.querySelector('form[action="/configuracion/servicios/crear"]');
     if (formCrear) {
         formCrear.addEventListener('submit', function(e) {
+            ocultarError();
             var cod = formCrear.querySelector('[name="codigo"]');
             if (cod && !/^[A-Z]{3,4}$/.test(cod.value)) {
                 e.preventDefault();
-                alert('Ingrese el código del servicio (3 o 4 letras).');
+                mostrarError('Ingrese el código del servicio (3 o 4 letras).');
                 return;
             }
             var desc = formCrear.querySelector('[name="descripcion"]');
             if (desc && !desc.value.trim()) {
                 e.preventDefault();
-                alert('La descripción no puede estar vacía.');
+                mostrarError('La descripción no puede estar vacía.');
             }
         });
     }
+
     document.querySelectorAll('form[action*="/editar"]').forEach(function(form) {
         form.addEventListener('submit', function(e) {
+            ocultarError();
             var desc = form.querySelector('[name="descripcion"]');
             if (desc && !desc.value.trim()) {
                 e.preventDefault();
-                alert('La descripción no puede estar vacía.');
+                mostrarError('La descripción no puede estar vacía.');
             }
         });
     });

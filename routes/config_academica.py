@@ -286,13 +286,17 @@ def listar_plan_estudio():
     cod_editar = request.args.get('editar')
 
     if prog_seleccionado:
-        plan_estudio = srv.listar_plan_estudio(prog_seleccionado)
-        asignaturas_disp = srv.listar_asignaturas(limit=500)
-        if cod_editar:
-            for a in plan_estudio:
-                if a['codigo'].strip() == cod_editar.strip():
-                    asignatura_edit = a
-                    break
+        if not srv.obtener_programa(prog_seleccionado):
+            flash('Programa académico no encontrado.', 'error')
+            prog_seleccionado = None
+        else:
+            plan_estudio = srv.listar_plan_estudio(prog_seleccionado)
+            asignaturas_disp = srv.listar_asignaturas(limit=500)
+            if cod_editar:
+                for a in plan_estudio:
+                    if a['codigo'].strip() == cod_editar.strip():
+                        asignatura_edit = a
+                        break
 
     return render_template('configuracion/plan_estudio.html',
                            programas=programas,

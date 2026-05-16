@@ -94,13 +94,13 @@ def get_reporte_pendientes_pago(periodo, programa):
         with conn.cursor(cursor_factory=DictCursor) as cur:
             cur.execute("""
                 SELECT e.codigo, e.nombre,
-                ABS(SUM(
-                    CASE
-                        WHEN s.grupo = 'PAGO' THEN cc.valor
-                        WHEN s.grupo = 'COBRO' THEN -cc.valor
-                        ELSE 0
-                    END
-                )) AS saldo_pendiente
+                       ABS(SUM(
+                           CASE
+                               WHEN s.grupo = 'COBRO' THEN -cc.valor
+                               WHEN s.grupo = 'PAGO' THEN cc.valor
+                               ELSE 0
+                           END
+                       )) AS saldo_pendiente
                 FROM cuenta_corriente cc
                 JOIN estudiante e ON cc.cod_estudiante = e.codigo
                 JOIN servicio s ON cc.codigo_servicio = s.codigo
@@ -112,8 +112,8 @@ def get_reporte_pendientes_pago(periodo, programa):
                 GROUP BY e.codigo, e.nombre
                 HAVING SUM(
                     CASE
-                        WHEN s.grupo = 'PAGO' THEN cc.valor
                         WHEN s.grupo = 'COBRO' THEN -cc.valor
+                        WHEN s.grupo = 'PAGO' THEN cc.valor
                         ELSE 0
                     END
                 ) < 0
@@ -129,7 +129,7 @@ def get_reporte_ingreso_real(periodo, programa):
     try:
         with conn.cursor(cursor_factory=DictCursor) as cur:
             cur.execute("""
-                SELECT SUM(cc.valor) as total_ingreso
+                SELECT COALESCE(SUM(cc.valor), 0) AS total_ingreso
                 FROM cuenta_corriente cc
                 JOIN servicio s ON cc.codigo_servicio = s.codigo
                 JOIN matricula m ON m.cod_estudiante = cc.cod_estudiante AND m.cod_periodo = cc.codigo_periodo
@@ -137,7 +137,7 @@ def get_reporte_ingreso_real(periodo, programa):
                 WHERE cc.codigo_periodo = %s
                   AND m.prog_acad = %s
                   AND s.grupo = 'PAGO'
-                  AND p.estado <> 'ANULADO'
+                  AND (cc.id_pago IS NULL OR p.estado <> 'ANULADO')
             """, (periodo, programa))
             res = cur.fetchone()
             return float(res['total_ingreso']) if res and res['total_ingreso'] else 0.0

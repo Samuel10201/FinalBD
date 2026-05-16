@@ -13,6 +13,7 @@
         <a href="/configuracion/periodos?tab=actualizar" class="{% if tab == 'actualizar' %}active{% endif %}">Actualizar</a>
         <a href="/configuracion/periodos?tab=desactivar" class="{% if tab == 'desactivar' %}active{% endif %}">Desactivar</a>
     </div>
+    <div id="error_msg" class="alert alert-error" style="display:none;"></div>
 
     {% if tab == 'buscar' or not tab %}
     <form method="GET" action="/configuracion/periodos" class="form-inline">
@@ -194,6 +195,16 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     var descMap = {'00':'Periodo Libre','10':'Primer Semestre','20':'Intersemestral','30':'Segundo Semestre','40':'Vacacional Final'};
+    var errorDiv = document.getElementById('error_msg');
+
+    function mostrarError(msg) {
+        errorDiv.textContent = msg;
+        errorDiv.style.display = '';
+    }
+
+    function ocultarError() {
+        errorDiv.style.display = 'none';
+    }
 
     function generarDesc(codigo) {
         if (codigo.length === 6) {
@@ -208,15 +219,15 @@ document.addEventListener('DOMContentLoaded', function() {
         var inicio = form.querySelector('[name="fecha_inicio"]').value;
         var fin = form.querySelector('[name="fecha_fin"]').value;
         if (inicio && !inicio.startsWith(anio)) {
-            alert('La fecha de inicio debe corresponder al año ' + anio + '.');
+            mostrarError('La fecha de inicio debe corresponder al año ' + anio + '.');
             return false;
         }
         if (fin && !fin.startsWith(anio)) {
-            alert('La fecha de fin debe corresponder al año ' + anio + '.');
+            mostrarError('La fecha de fin debe corresponder al año ' + anio + '.');
             return false;
         }
         if (inicio && fin && fin < inicio) {
-            alert('La fecha de fin no puede ser anterior a la fecha de inicio.');
+            mostrarError('La fecha de fin no puede ser anterior a la fecha de inicio.');
             return false;
         }
         return true;
@@ -229,11 +240,13 @@ document.addEventListener('DOMContentLoaded', function() {
         codInput.addEventListener('input', function() {
             this.value = this.value.replace(/\D/g, '').substring(0,6);
             descInput.value = generarDesc(this.value);
+            ocultarError();
         });
         formCrear.addEventListener('submit', function(e) {
+            ocultarError();
             if (!/^[0-9]{4}(00|10|20|30|40)$/.test(codInput.value)) {
                 e.preventDefault();
-                alert('Ingrese el código del periodo (4 dígitos del año + 00, 10, 20, 30 o 40).');
+                mostrarError('Ingrese el código del periodo (4 dígitos del año + 00, 10, 20, 30 o 40).');
                 return;
             }
             if (!validarFechas(formCrear, codInput.value.substring(0,4))) { e.preventDefault(); }
@@ -248,6 +261,7 @@ document.addEventListener('DOMContentLoaded', function() {
             descEdit.value = generarDesc(codDisabled.value.trim());
         }
         formEditar.addEventListener('submit', function(e) {
+            ocultarError();
             var anio = codDisabled ? codDisabled.value.trim().substring(0,4) : '';
             if (anio && !validarFechas(formEditar, anio)) { e.preventDefault(); }
         });
