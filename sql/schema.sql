@@ -29,7 +29,7 @@ CREATE TABLE servicio(
 );
 
 CREATE TABLE usuario(
-    tipo_id CHAR(2) CHECK(tipo_id IN('CC', 'TI', 'CE', 'PP', 'RC', 'NI', 'PE')),
+    tipo_id CHAR(2) NOT NULL CHECK(tipo_id IN('CC', 'TI', 'CE', 'PP', 'RC', 'NI', 'PE')),
     id VARCHAR(15),
     nombre VARCHAR(50) NOT NULL,
     correo VARCHAR(50) NOT NULL UNIQUE CHECK(correo ~ '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'),
@@ -37,7 +37,7 @@ CREATE TABLE usuario(
     rol VARCHAR(15) NOT NULL CHECK(rol IN ('ADMINISTRADOR', 'ESTUDIANTE', 'SUPERVISOR', 'ASISTENTE')),
     estado VARCHAR(10) NOT NULL CHECK(estado IN ('ACTIVO', 'INACTIVO')),
     fecha_creacion TIMESTAMP NOT NULL DEFAULT NOW(),
-    PRIMARY KEY(tipo_id, id) 
+    PRIMARY KEY(id)
 );
 
 CREATE TABLE estudiante(
@@ -46,9 +46,7 @@ CREATE TABLE estudiante(
     estado VARCHAR(10) NOT NULL DEFAULT 'ACTIVO' CHECK(estado IN ('ACTIVO', 'INACTIVO')),
     fecha_nacimiento DATE NOT NULL,
     direccion VARCHAR(60) NOT NULL,
-    tipo_id CHAR(2) NOT NULL,
-    id VARCHAR(15) NOT NULL,
-    FOREIGN KEY(tipo_id, id) REFERENCES usuario(tipo_id, id)
+    id VARCHAR(15) NOT NULL REFERENCES usuario(id)
 );
 
 CREATE TABLE matricula (
@@ -76,12 +74,10 @@ CREATE TABLE cuenta_corriente(
     descripcion_mov VARCHAR(100) NOT NULL,
     valor NUMERIC(12,2) NOT NULL CHECK(valor > 0),
     cod_estudiante VARCHAR(8) NOT NULL REFERENCES estudiante(codigo),
-    tipo_id_usuario CHAR(2) NOT NULL,
-    id_usuario VARCHAR(15) NOT NULL,
+    id_usuario VARCHAR(15) NOT NULL REFERENCES usuario(id),
     codigo_servicio VARCHAR(4) NOT NULL REFERENCES servicio(codigo),
     codigo_periodo CHAR(6) NOT NULL REFERENCES periodo(codigo),
-    id_pago INT REFERENCES pago(id),
-    FOREIGN KEY(tipo_id_usuario, id_usuario) REFERENCES usuario(tipo_id, id)
+    id_pago INT REFERENCES pago(id)
 );
 
 CREATE TABLE costo(

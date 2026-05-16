@@ -87,5 +87,32 @@
 
         {% block contenido %}{% endblock %}
     </main>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('input, select').forEach(function(el) {
+        el.addEventListener('invalid', function() {
+            if (el.validity.valueMissing) {
+                if (el.tagName === 'SELECT' || el.list) {
+                    el.setCustomValidity('Por favor, seleccione un item de la lista');
+                } else {
+                    el.setCustomValidity('Por favor, complete este campo');
+                }
+            } else if (el.validity.patternMismatch) {
+                el.setCustomValidity('Por favor, utilice el formato indicado: ' + (el.title || ''));
+            } else if (el.validity.typeMismatch) {
+                el.setCustomValidity('Por favor, introduzca un valor válido');
+            } else {
+                el.setCustomValidity('');
+            }
+        });
+        el.addEventListener('input', function() {
+            el.setCustomValidity('');
+        });
+        el.addEventListener('change', function() {
+            el.setCustomValidity('');
+        });
+    });
+});
+</script>
 </body>
 </html>

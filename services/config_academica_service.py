@@ -4,15 +4,15 @@ import bcrypt
 
 # --- Estudiantes ---
 
-def listar_estudiantes(correo=None, tipo_id=None, id_num=None, limit=20, offset=0):
+def listar_estudiantes(correo=None, tipo_id=None, id_num=None, estado=None, limit=20, offset=0):
     """Retorna lista de estudiantes, con filtros opcionales y paginacion."""
     conn = get_connection()
     try:
         with conn.cursor() as cur:
             query = (
-                "SELECT e.codigo, e.nombre, e.estado, e.fecha_nacimiento, e.direccion, e.tipo_id, e.id, u.correo "
+                "SELECT e.codigo, e.nombre, e.estado, e.fecha_nacimiento, e.direccion, u.tipo_id, e.id, u.correo "
                 "FROM estudiante e "
-                "JOIN usuario u ON e.tipo_id = u.tipo_id AND e.id = u.id "
+                "JOIN usuario u ON e.id = u.id "
                 "WHERE 1=1 "
             )
             params = []
@@ -20,11 +20,14 @@ def listar_estudiantes(correo=None, tipo_id=None, id_num=None, limit=20, offset=
                 query += "AND u.correo ILIKE %s "
                 params.append(f"{correo}%")
             if tipo_id:
-                query += "AND e.tipo_id = %s "
+                query += "AND u.tipo_id = %s "
                 params.append(tipo_id)
             if id_num:
                 query += "AND e.id ILIKE %s "
                 params.append(f"{id_num}%")
+            if estado:
+                query += "AND e.estado = %s "
+                params.append(estado)
 
             query += "ORDER BY e.codigo LIMIT %s OFFSET %s"
             params.append(limit)
@@ -42,9 +45,9 @@ def obtener_estudiante(codigo):
     try:
         with conn.cursor() as cur:
             cur.execute(
-                "SELECT e.codigo, e.nombre, e.estado, e.fecha_nacimiento, e.direccion, e.tipo_id, e.id, u.correo "
+                "SELECT e.codigo, e.nombre, e.estado, e.fecha_nacimiento, e.direccion, u.tipo_id, e.id, u.correo "
                 "FROM estudiante e "
-                "JOIN usuario u ON e.tipo_id = u.tipo_id AND e.id = u.id "
+                "JOIN usuario u ON e.id = u.id "
                 "WHERE e.codigo = %s",
                 (codigo,)
             )
@@ -66,9 +69,9 @@ def crear_estudiante(codigo, nombre, fecha_nacimiento, direccion, tipo_id, id, c
                     (tipo_id, id, nombre, correo, hashed)
                 )
                 cur.execute(
-                    "INSERT INTO estudiante (codigo, nombre, estado, fecha_nacimiento, direccion, tipo_id, id) "
-                    "VALUES (%s, %s, 'ACTIVO', %s, %s, %s, %s)",
-                    (codigo, nombre, fecha_nacimiento, direccion, tipo_id, id)
+                    "INSERT INTO estudiante (codigo, nombre, estado, fecha_nacimiento, direccion, id) "
+                    "VALUES (%s, %s, 'ACTIVO', %s, %s, %s)",
+                    (codigo, nombre, fecha_nacimiento, direccion, id)
                 )
     finally:
         close_connection(conn)
@@ -88,7 +91,7 @@ def actualizar_estudiante(codigo, nombre, fecha_nacimiento, direccion, estado):
                 # Tambien actualizar el nombre y estado en la tabla usuario
                 cur.execute(
                     "UPDATE usuario SET nombre = %s, estado = %s "
-                    "WHERE (tipo_id, id) = (SELECT tipo_id, id FROM estudiante WHERE codigo = %s)",
+                    "WHERE id = (SELECT id FROM estudiante WHERE codigo = %s)",
                     (nombre, estado, codigo)
                 )
     finally:
@@ -103,7 +106,7 @@ def desactivar_estudiante(codigo):
             with conn.cursor() as cur:
                 cur.execute(
                     "UPDATE usuario SET estado = 'INACTIVO' "
-                    "WHERE (tipo_id, id) = (SELECT tipo_id, id FROM estudiante WHERE codigo = %s)",
+                    "WHERE id = (SELECT id FROM estudiante WHERE codigo = %s)",
                     (codigo,)
                 )
                 cur.execute(
@@ -294,6 +297,24 @@ def asignar_asignatura_plan(prog_academico, cod_asignatura, semestre):
                 cur.execute(
                     "INSERT INTO plan_estudio (nombre_programa, cod_asignatura, semestre) VALUES (%s, %s, %s)",
                     (prog_academico, cod_asignatura, semestre)
+                )
+    finally:
+        close_connection(conn)
+
+
+def actualizar_asignatura_en_plan(prog_academico, cod_asignatura, semestre, creditos, tipo):
+    """Actualiza semestre en plan_estudio y créditos/tipo en asignatura (transacción)."""
+    conn = get_connection()
+    try:
+        with conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "UPDATE plan_estudio SET semestre = %s WHERE nombre_programa = %s AND cod_asignatura = %s",
+                    (semestre, prog_academico, cod_asignatura)
+                )
+                cur.execute(
+                    "UPDATE asignatura SET creditos = %s, tipo = %s WHERE codigo = %s",
+                    (creditos, tipo, cod_asignatura)
                 )
     finally:
         close_connection(conn)

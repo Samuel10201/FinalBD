@@ -10,7 +10,7 @@
 <div class="card">
     <h3 style="margin-bottom: 1rem;">Seleccionar Programa y Periodo</h3>
     <form method="POST">
-        <div class="form-inline">
+        <div class="form-inline" style="align-items: flex-start;">
             <div class="form-group">
                 <label for="prog_acad">Programa Académico *</label>
                 <input
@@ -30,20 +30,12 @@
 
             <div class="form-group">
                 <label for="cod_periodo_destino">Periodo Destino *</label>
-                <input
-                    type="text"
-                    id="cod_periodo_destino"
-                    name="cod_periodo_destino"
-                    placeholder="Código del periodo (ej: 202210)"
-                    list="periodos_list"
-                    value="{{ cod_periodo_destino_seleccionado or '' }}"
-                    required>
-                <datalist id="periodos_list">
+                <select id="cod_periodo_destino" name="cod_periodo_destino" required>
+                    <option value="">-- Seleccione --</option>
                     {% for per in periodos %}
-                        <option value="{{ per.codigo }}">{{ per.descripcion }}</option>
+                        <option value="{{ per.codigo }}" {% if cod_periodo_destino_seleccionado == per.codigo %}selected{% endif %}>{{ per.codigo }} - {{ per.descripcion }}</option>
                     {% endfor %}
-                </datalist>
-                <small style="color: #5b6577; font-size: 0.85rem;">Periodo al que inscribirás los estudiantes</small>
+                </select>
             </div>
         </div>
 

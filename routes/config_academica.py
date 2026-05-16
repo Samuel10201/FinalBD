@@ -14,6 +14,7 @@ def listar_estudiantes():
     correo = request.args.get('correo')
     tipo_id = request.args.get('tipo_id')
     id_num = request.args.get('id')
+    estado = request.args.get('estado')
     tab = request.args.get('tab', 'buscar')
     pagina = int(request.args.get('pagina', 1))
 
@@ -32,14 +33,14 @@ def listar_estudiantes():
         if not estudiante_desactivar:
             flash(f'Estudiante con código {codigo_desactivar} no encontrado.', 'error')
 
-    estudiantes = srv.listar_estudiantes(correo, tipo_id, id_num, limit=20, offset=(pagina - 1) * 20)
+    estudiantes = srv.listar_estudiantes(correo, tipo_id, id_num, estado, limit=20, offset=(pagina - 1) * 20)
     return render_template('configuracion/estudiantes.html',
                            estudiantes=estudiantes,
                            tab=tab,
                            pagina=pagina,
                            estudiante_edit=estudiante_edit,
                            estudiante_desactivar=estudiante_desactivar,
-                           correo=correo, tipo_id=tipo_id, id_num=id_num)
+                           correo=correo, tipo_id=tipo_id, id_num=id_num, estado=estado)
 
 
 @config_academica_bp.route('/configuracion/estudiantes/crear', methods=['GET', 'POST'])
@@ -281,15 +282,24 @@ def listar_plan_estudio():
     plan_estudio = []
     asignaturas_disp = []
 
+    asignatura_edit = None
+    cod_editar = request.args.get('editar')
+
     if prog_seleccionado:
         plan_estudio = srv.listar_plan_estudio(prog_seleccionado)
         asignaturas_disp = srv.listar_asignaturas(limit=500)
-        
-    return render_template('configuracion/plan_estudio.html', 
-                           programas=programas, 
-                           prog_seleccionado=prog_seleccionado, 
+        if cod_editar:
+            for a in plan_estudio:
+                if a['codigo'].strip() == cod_editar.strip():
+                    asignatura_edit = a
+                    break
+
+    return render_template('configuracion/plan_estudio.html',
+                           programas=programas,
+                           prog_seleccionado=prog_seleccionado,
                            plan_estudio=plan_estudio,
-                           asignaturas=asignaturas_disp)
+                           asignaturas=asignaturas_disp,
+                           asignatura_edit=asignatura_edit)
 
 
 @config_academica_bp.route('/configuracion/plan-estudio/asignar', methods=['POST'])
@@ -306,6 +316,25 @@ def asignar_asignatura_plan():
     except Exception as e:
         flash(f'Error al asignar asignatura: {str(e)}', 'error')
         
+    return redirect(url_for('config_academica.listar_plan_estudio', programa=request.form.get('prog_academico')))
+
+
+@config_academica_bp.route('/configuracion/plan-estudio/actualizar', methods=['POST'])
+@rol_requerido('SUPERVISOR')
+def actualizar_asignatura_plan():
+    """Actualiza semestre, créditos y tipo de una asignatura en el plan."""
+    try:
+        prog_academico = request.form['prog_academico']
+        cod_asignatura = request.form['cod_asignatura']
+        semestre = request.form['semestre']
+        creditos = request.form['creditos']
+        tipo = request.form['tipo']
+
+        srv.actualizar_asignatura_en_plan(prog_academico, cod_asignatura, semestre, creditos, tipo)
+        flash('Asignatura actualizada exitosamente', 'success')
+    except Exception as e:
+        flash(f'Error al actualizar: {str(e)}', 'error')
+
     return redirect(url_for('config_academica.listar_plan_estudio', programa=request.form.get('prog_academico')))
 
 

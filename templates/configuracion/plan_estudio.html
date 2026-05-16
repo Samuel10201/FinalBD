@@ -7,7 +7,7 @@
 <div class="card">
     <form method="GET" action="/configuracion/plan-estudio" class="form-inline">
         <div class="form-group">
-            <label for="programa">Programa Académico</label>
+            <label for="programa">Programa Academico</label>
             <input type="text" id="programa" name="programa" list="lista_programas" value="{{ prog_seleccionado or '' }}" required placeholder="Escriba o seleccione un programa...">
             <datalist id="lista_programas">
                 {% for p in programas %}
@@ -25,6 +25,35 @@
 <div class="card">
     <h3 style="margin-bottom: 1rem; color: #1e293b;">{{ prog_seleccionado }}</h3>
 
+    {% if asignatura_edit %}
+    <h4 style="margin-bottom: 0.5rem; color: #5b6577;">Editando: {{ asignatura_edit.codigo }} - {{ asignatura_edit.nombre }}</h4>
+    <form method="POST" action="/configuracion/plan-estudio/actualizar" class="form-inline">
+        <input type="hidden" name="prog_academico" value="{{ prog_seleccionado }}">
+        <input type="hidden" name="cod_asignatura" value="{{ asignatura_edit.codigo }}">
+        <div class="form-group">
+            <label for="semestre_edit">Semestre</label>
+            <input type="number" id="semestre_edit" name="semestre" value="{{ asignatura_edit.semestre }}" min="1" max="12" required>
+        </div>
+        <div class="form-group">
+            <label for="creditos_edit">Creditos</label>
+            <input type="number" id="creditos_edit" name="creditos" value="{{ asignatura_edit.creditos }}" min="0" max="10" required>
+        </div>
+        <div class="form-group">
+            <label for="tipo_edit">Tipo</label>
+            <select id="tipo_edit" name="tipo" required>
+                <option value="OBLIGATORIA" {% if asignatura_edit.tipo == 'OBLIGATORIA' %}selected{% endif %}>OBLIGATORIA</option>
+                <option value="ELECTIVA" {% if asignatura_edit.tipo == 'ELECTIVA' %}selected{% endif %}>ELECTIVA</option>
+            </select>
+        </div>
+        <div class="form-buttons">
+            <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+            <a href="/configuracion/plan-estudio?programa={{ prog_seleccionado }}" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
+    <hr style="margin: 1rem 0;">
+    {% endif %}
+
+    <h4 style="margin-bottom: 0.5rem; color: #5b6577;">Agregar Asignatura</h4>
     <form method="POST" action="/configuracion/plan-estudio/asignar" class="form-inline">
         <input type="hidden" name="prog_academico" value="{{ prog_seleccionado }}">
         <div class="form-group">
@@ -41,7 +70,7 @@
             <input type="number" id="semestre" name="semestre" min="1" max="12" required>
         </div>
         <div class="form-buttons">
-            <button type="submit" class="btn btn-primary">Añadir</button>
+            <button type="submit" class="btn btn-primary">Agregar</button>
         </div>
     </form>
 
@@ -50,9 +79,9 @@
         <thead>
             <tr>
                 <th>Semestre</th>
-                <th>Código</th>
+                <th>Codigo</th>
                 <th>Nombre</th>
-                <th>Créditos</th>
+                <th>Creditos</th>
                 <th>Tipo</th>
                 <th>Acciones</th>
             </tr>
@@ -60,12 +89,13 @@
         <tbody>
             {% for a in plan_estudio %}
             <tr>
-                <td>Semestre {{ a.semestre }}</td>
+                <td>{{ a.semestre }}</td>
                 <td>{{ a.codigo }}</td>
                 <td>{{ a.nombre }}</td>
                 <td>{{ a.creditos }}</td>
                 <td>{{ a.tipo }}</td>
-                <td>
+                <td style="display:flex; gap:4px;">
+                    <a href="/configuracion/plan-estudio?programa={{ prog_seleccionado }}&editar={{ a.codigo }}" class="btn btn-primary" style="padding: 2px 8px; font-size: 0.8rem;">Editar</a>
                     <form action="/configuracion/plan-estudio/eliminar" method="POST" style="display:inline;">
                         <input type="hidden" name="prog_academico" value="{{ prog_seleccionado }}">
                         <input type="hidden" name="cod_asignatura" value="{{ a.codigo }}">

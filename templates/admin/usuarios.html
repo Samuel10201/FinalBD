@@ -77,14 +77,18 @@
 
     {% elif accion == 'actualizar' %}
         {% if seleccionado %}
-        <form method="POST" action="/admin/usuarios/{{ seleccionado.tipo_id.strip() }}/{{ seleccionado.id }}/editar" class="form-inline">
+        <form method="POST" action="/admin/usuarios/{{ seleccionado.id }}/editar" class="form-inline">
             <div class="form-group">
                 <label for="tipo_id">Tipo ID</label>
+                {% if seleccionado.tipo_id.strip() == 'TI' %}
                 <select id="tipo_id" name="tipo_id" required>
-                    {% for t in ['CC', 'TI', 'CE', 'PP', 'RC', 'NI', 'PE'] %}
-                    <option value="{{ t }}" {% if seleccionado.tipo_id.strip() == t %}selected{% endif %}>{{ t }}</option>
-                    {% endfor %}
+                    <option value="TI" selected>TI</option>
+                    <option value="CC">CC</option>
                 </select>
+                {% else %}
+                <input type="hidden" name="tipo_id" value="{{ seleccionado.tipo_id.strip() }}">
+                <input type="text" value="{{ seleccionado.tipo_id.strip() }}" disabled>
+                {% endif %}
             </div>
             <div class="form-group">
                 <label>Identificación</label>
@@ -141,19 +145,6 @@
             </div>
             <p class="form-separator">o</p>
             <div class="form-group">
-                <label for="tipo_id">Tipo ID</label>
-                <select id="tipo_id" name="tipo_id">
-                    <option value="">--</option>
-                    <option value="CC">CC</option>
-                    <option value="TI">TI</option>
-                    <option value="CE">CE</option>
-                    <option value="PP">PP</option>
-                    <option value="RC">RC</option>
-                    <option value="NI">NI</option>
-                    <option value="PE">PE</option>
-                </select>
-            </div>
-            <div class="form-group">
                 <label for="id">Identificación</label>
                 <input type="text" id="id" name="id" placeholder="Número de documento">
             </div>
@@ -184,7 +175,7 @@
             </div>
             <div class="form-buttons">
                 {% if seleccionado.estado == 'ACTIVO' %}
-                <form method="POST" action="/admin/usuarios/{{ seleccionado.tipo_id.strip() }}/{{ seleccionado.id }}/desactivar">
+                <form method="POST" action="/admin/usuarios/{{ seleccionado.id }}/desactivar">
                     <button type="submit" class="btn btn-danger">Confirmar</button>
                 </form>
                 <a href="/admin/usuarios?accion=desactivar" class="btn btn-secondary">Cancelar</a>
@@ -206,19 +197,6 @@
                 </datalist>
             </div>
             <p class="form-separator">o</p>
-            <div class="form-group">
-                <label for="tipo_id">Tipo ID</label>
-                <select id="tipo_id" name="tipo_id">
-                    <option value="">--</option>
-                    <option value="CC">CC</option>
-                    <option value="TI">TI</option>
-                    <option value="CE">CE</option>
-                    <option value="PP">PP</option>
-                    <option value="RC">RC</option>
-                    <option value="NI">NI</option>
-                    <option value="PE">PE</option>
-                </select>
-            </div>
             <div class="form-group">
                 <label for="id">Identificación</label>
                 <input type="text" id="id" name="id" placeholder="Número de documento">

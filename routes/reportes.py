@@ -21,8 +21,8 @@ def perfil():
     conn = get_connection()
     try:
         with conn.cursor() as cur:
-            cur.execute("SELECT codigo FROM estudiante WHERE tipo_id = %s AND id = %s",
-                        (usuario['tipo_id'], usuario['id']))
+            cur.execute("SELECT codigo FROM estudiante WHERE id = %s",
+                        (usuario['id'],))
             res = cur.fetchone()
             codigo_estudiante = res['codigo'] if res else None
     finally:

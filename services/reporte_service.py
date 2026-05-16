@@ -137,7 +137,7 @@ def get_reporte_ingreso_real(periodo, programa):
                 WHERE cc.codigo_periodo = %s
                   AND m.prog_acad = %s
                   AND s.grupo = 'PAGO'
-                  AND p.estado = 'COMPLETADO'
+                  AND p.estado <> 'ANULADO'
             """, (periodo, programa))
             res = cur.fetchone()
             return float(res['total_ingreso']) if res and res['total_ingreso'] else 0.0

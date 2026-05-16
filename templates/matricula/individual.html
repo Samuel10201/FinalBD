@@ -58,18 +58,12 @@
 
         <div class="form-group">
             <label for="cod_periodo">Periodo *</label>
-            <input
-                type="text"
-                id="cod_periodo"
-                name="cod_periodo"
-                placeholder="Código del periodo (ej: 202210)"
-                list="periodos_list"
-                required>
-            <datalist id="periodos_list">
+            <select id="cod_periodo" name="cod_periodo" required>
+                <option value="">-- Seleccione --</option>
                 {% for per in periodos %}
-                    <option value="{{ per.codigo }}">{{ per.descripcion }}</option>
+                    <option value="{{ per.codigo }}">{{ per.codigo }} - {{ per.descripcion }}</option>
                 {% endfor %}
-            </datalist>
+            </select>
         </div>
 
         <div class="form-inline">
@@ -101,4 +95,38 @@
         </div>
     </form>
 </div>
+
+<script>
+(function() {
+    const codEstudiante = document.getElementById('cod_estudiante');
+    const progAcad = document.getElementById('prog_acad');
+    const semestreInput = document.getElementById('semestre');
+    let ultimoSemestre = null;
+
+    function consultarSemestre() {
+        const cod = codEstudiante.value.trim();
+        const prog = progAcad.value.trim();
+        if (!cod || !prog) return;
+
+        fetch('/matricula/semestre-actual?cod_estudiante=' + encodeURIComponent(cod) + '&prog_acad=' + encodeURIComponent(prog))
+            .then(r => r.json())
+            .then(data => {
+                if (data.semestre !== null) {
+                    ultimoSemestre = data.semestre;
+                    semestreInput.value = data.semestre + 1;
+                    semestreInput.min = data.semestre + 1;
+                    semestreInput.max = 12;
+                } else {
+                    ultimoSemestre = null;
+                    semestreInput.value = 1;
+                    semestreInput.min = 1;
+                    semestreInput.max = 12;
+                }
+            });
+    }
+
+    codEstudiante.addEventListener('change', consultarSemestre);
+    progAcad.addEventListener('change', consultarSemestre);
+})();
+</script>
 {% endblock %}

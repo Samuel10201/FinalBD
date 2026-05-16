@@ -85,12 +85,12 @@ def obtener_todos_los_periodos():
     finally:
         close_connection(conn)
 
-def obtener_codigo_estudiante(tipo_id, id_usuario):
-    """Obtiene el codigo de estudiante a partir de las credenciales de usuario."""
+def obtener_codigo_estudiante(id_usuario):
+    """Obtiene el codigo de estudiante a partir del id de usuario."""
     conn = get_connection()
     try:
         with conn.cursor() as cur:
-            cur.execute("SELECT codigo FROM estudiante WHERE tipo_id = %s AND id = %s", (tipo_id, id_usuario))
+            cur.execute("SELECT codigo FROM estudiante WHERE id = %s", (id_usuario,))
             res = cur.fetchone()
             return res['codigo'] if res else None
     finally:

@@ -1,5 +1,6 @@
-from flask import Blueprint, render_template, request, redirect, session, flash
+from flask import Blueprint, render_template, request, redirect, session, flash, jsonify
 from services import matricula_service
+from models.db import get_connection, close_connection
 
 matricula_bp = Blueprint('matricula', __name__)
 
@@ -68,7 +69,6 @@ def individual():
                 cod_periodo=cod_periodo,
                 modalidad=modalidad,
                 semestre=semestre,
-                tipo_id_usuario=session['usuario']['tipo_id'],
                 id_usuario=session['usuario']['id']
             )
             
@@ -122,7 +122,7 @@ def masiva():
     if request.method == 'GET':
         # Mostrar formulario con listas
         programas = matricula_service.obtener_programas_activos()
-        periodos = matricula_service.obtener_periodos_activos()
+        periodos = matricula_service.obtener_periodos_matricula_masiva()
         return render_template('matricula/masiva.html', programas=programas, periodos=periodos)
     
     elif request.method == 'POST':
@@ -134,7 +134,7 @@ def masiva():
             if not all([prog_acad, cod_periodo_destino]):
                 flash('Programa y período destino son obligatorios.', 'error')
                 programas = matricula_service.obtener_programas_activos()
-                periodos = matricula_service.obtener_periodos_activos()
+                periodos = matricula_service.obtener_periodos_matricula_masiva()
                 return render_template('matricula/masiva.html', programas=programas, periodos=periodos), 400
             
             if action == 'preview':
@@ -148,7 +148,7 @@ def masiva():
                     flash(f"Aviso: {preview['mensaje']}", 'warning')
                 
                 programas = matricula_service.obtener_programas_activos()
-                periodos = matricula_service.obtener_periodos_activos()
+                periodos = matricula_service.obtener_periodos_matricula_masiva()
                 
                 return render_template(
                     'matricula/masiva.html',
@@ -164,7 +164,6 @@ def masiva():
                 resultado = matricula_service.crear_matriculas_masivas(
                     prog_acad=prog_acad,
                     cod_periodo_destino=cod_periodo_destino,
-                    tipo_id_usuario=session['usuario']['tipo_id'],
                     id_usuario=session['usuario']['id']
                 )
                 
@@ -184,17 +183,41 @@ def masiva():
                 
                 # Volver al formulario inicial
                 programas = matricula_service.obtener_programas_activos()
-                periodos = matricula_service.obtener_periodos_activos()
+                periodos = matricula_service.obtener_periodos_matricula_masiva()
                 return render_template('matricula/masiva.html', programas=programas, periodos=periodos)
             
             else:
                 flash('Acción no reconocida.', 'error')
                 programas = matricula_service.obtener_programas_activos()
-                periodos = matricula_service.obtener_periodos_activos()
+                periodos = matricula_service.obtener_periodos_matricula_masiva()
                 return render_template('matricula/masiva.html', programas=programas, periodos=periodos), 400
         
         except Exception as e:
             flash(f"Error inesperado: {str(e)}", 'error')
             programas = matricula_service.obtener_programas_activos()
-            periodos = matricula_service.obtener_periodos_activos()
+            periodos = matricula_service.obtener_periodos_matricula_masiva()
             return render_template('matricula/masiva.html', programas=programas, periodos=periodos), 400
+
+
+@matricula_bp.route('/matricula/semestre-actual')
+def semestre_actual():
+    """API: retorna el último semestre matriculado de un estudiante en un programa."""
+    if 'usuario' not in session:
+        return jsonify({'semestre': None}), 401
+    cod_estudiante = request.args.get('cod_estudiante', '').strip()
+    prog_acad = request.args.get('prog_acad', '').strip()
+    if not cod_estudiante or not prog_acad:
+        return jsonify({'semestre': None})
+    conn = get_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT semestre FROM matricula "
+                "WHERE cod_estudiante = %s AND prog_acad = %s "
+                "ORDER BY cod_periodo DESC LIMIT 1",
+                (cod_estudiante, prog_acad)
+            )
+            row = cur.fetchone()
+            return jsonify({'semestre': row['semestre'] if row else None})
+    finally:
+        close_connection(conn)

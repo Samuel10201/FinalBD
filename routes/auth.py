@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, request, redirect, session, flash
+from psycopg2.errors import UniqueViolation
 from services.auth_service import (
     login as auth_login,
     obtener_usuario,
@@ -81,7 +82,6 @@ def listar_usuarios():
     buscar = request.args.get('buscar', '').strip()
     accion = request.args.get('accion', 'buscar')
     pagina = max(1, int(request.args.get('pagina', 1)))
-    tipo_id_sel = request.args.get('tipo_id', '').strip()
     id_sel = request.args.get('id', '').strip()
 
     limite = 20
@@ -94,11 +94,9 @@ def listar_usuarios():
     if accion in ('actualizar', 'desactivar'):
         if correo_sel:
             seleccionado = obtener_usuario_por_correo(correo_sel)
-        elif tipo_id_sel and id_sel:
-            seleccionado = obtener_usuario(tipo_id_sel, id_sel)
-        elif tipo_id_sel or id_sel:
-            flash('Se requieren ambos campos: Tipo ID e Identificación', 'error')
-        if (correo_sel or (tipo_id_sel and id_sel)) and not seleccionado:
+        elif id_sel:
+            seleccionado = obtener_usuario(id_sel)
+        if (correo_sel or id_sel) and not seleccionado:
             flash('Usuario no encontrado', 'error')
 
     return render_template('admin/usuarios.html',
@@ -122,44 +120,57 @@ def crear_usuario():
     try:
         service_crear(tipo_id, id_usuario, nombre, correo, contrasena, rol)
         flash('Usuario creado exitosamente', 'success')
+    except UniqueViolation as e:
+        if 'usuario_pkey' in (e.diag.constraint_name or ''):
+            flash('Este número de identificación ya está asociado a otro usuario', 'error')
+        elif 'usuario_correo_key' in (e.diag.constraint_name or ''):
+            flash('Este correo electrónico ya está asociado a otro usuario', 'error')
+        else:
+            flash('Error al crear usuario: registro duplicado', 'error')
     except Exception as e:
         flash(f'Error al crear usuario: {e}', 'error')
 
     return redirect('/admin/usuarios')
 
 
-@auth_bp.route('/admin/usuarios/<tipo_id>/<id>/editar', methods=['GET', 'POST'])
+@auth_bp.route('/admin/usuarios/<id>/editar', methods=['GET', 'POST'])
 @rol_requerido('ADMINISTRADOR')
-def editar_usuario(tipo_id, id):
+def editar_usuario(id):
     if request.method == 'POST':
-        nuevo_tipo_id = request.form.get('tipo_id', '').strip()
+        tipo_id = request.form.get('tipo_id', '').strip()
         nombre = request.form.get('nombre', '').strip()
         correo = request.form.get('correo', '').strip()
         rol = request.form.get('rol', '').strip()
         estado = request.form.get('estado', '').strip()
         contrasena = request.form.get('contrasena', '').strip() or None
 
+        seleccionado = obtener_usuario(id)
+        if seleccionado and tipo_id != seleccionado['tipo_id'].strip():
+            if not (seleccionado['tipo_id'].strip() == 'TI' and tipo_id == 'CC'):
+                flash('Solo se permite cambiar el tipo de documento de TI a CC', 'error')
+                return redirect('/admin/usuarios')
+
         try:
-            service_actualizar(tipo_id, id, nombre, correo, rol, estado, contrasena, nuevo_tipo_id)
+            service_actualizar(id, nombre, correo, rol, estado, contrasena, tipo_id)
             flash('Usuario actualizado exitosamente', 'success')
         except Exception as e:
             flash(f'Error al actualizar usuario: {e}', 'error')
 
         return redirect('/admin/usuarios')
 
-    return redirect(f'/admin/usuarios?accion=actualizar&tipo_id={tipo_id}&id={id}')
+    return redirect(f'/admin/usuarios?accion=actualizar&id={id}')
 
 
-@auth_bp.route('/admin/usuarios/<tipo_id>/<id>/desactivar', methods=['POST'])
+@auth_bp.route('/admin/usuarios/<id>/desactivar', methods=['POST'])
 @rol_requerido('ADMINISTRADOR')
-def desactivar_usuario(tipo_id, id):
+def desactivar_usuario(id):
     usuario_actual = session['usuario']
-    if usuario_actual['tipo_id'].strip() == tipo_id and usuario_actual['id'].strip() == id:
+    if usuario_actual['id'].strip() == id:
         flash('No puede desactivar su propio usuario', 'error')
         return redirect('/admin/usuarios')
 
     try:
-        service_desactivar(tipo_id, id)
+        service_desactivar(id)
         flash('Usuario desactivado', 'success')
     except Exception as e:
         flash(f'Error al desactivar usuario: {e}', 'error')

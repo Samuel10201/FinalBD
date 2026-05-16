@@ -1,7 +1,7 @@
 from models.db import get_connection, close_connection
 
 
-def registrar_pago(cod_estudiante, monto, metodo, codigo_servicio, cod_periodo, id_usuario, tipo_id_usuario):
+def registrar_pago(cod_estudiante, monto, metodo, codigo_servicio, cod_periodo, id_usuario):
     """Crea pago + movimiento en cuenta corriente en una transaccion BEGIN/COMMIT.
     Estado inicial del pago: PENDIENTE."""
     conn = get_connection()
@@ -13,15 +13,15 @@ def registrar_pago(cod_estudiante, monto, metodo, codigo_servicio, cod_periodo, 
                     (metodo, monto)
                 )
                 pago_id = cur.fetchone()['id']
-                
+
                 descripcion = f"Pago mediante {metodo.lower()}"
                 cur.execute(
                     """
-                    INSERT INTO cuenta_corriente 
-                    (descripcion_mov, valor, cod_estudiante, tipo_id_usuario, id_usuario, codigo_servicio, codigo_periodo, id_pago) 
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                    INSERT INTO cuenta_corriente
+                    (descripcion_mov, valor, cod_estudiante, id_usuario, codigo_servicio, codigo_periodo, id_pago)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
                     """,
-                    (descripcion, monto, cod_estudiante, tipo_id_usuario, id_usuario, codigo_servicio, cod_periodo, pago_id)
+                    (descripcion, monto, cod_estudiante, id_usuario, codigo_servicio, cod_periodo, pago_id)
                 )
                 return pago_id
     finally:

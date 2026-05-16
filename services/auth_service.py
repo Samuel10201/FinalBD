@@ -1,4 +1,5 @@
 from models.db import get_connection, close_connection
+from psycopg2.errors import UniqueViolation
 import bcrypt
 
 
@@ -29,15 +30,15 @@ def login(correo, contrasena):
         close_connection(conn)
 
 
-def obtener_usuario(tipo_id, id):
-    """Busca y retorna un usuario por su llave compuesta (tipo_id, id)."""
+def obtener_usuario(id):
+    """Busca y retorna un usuario por su id (PK)."""
     conn = get_connection()
     try:
         with conn.cursor() as cur:
             cur.execute(
                 "SELECT tipo_id, id, nombre, correo, rol, estado, fecha_creacion "
-                "FROM usuario WHERE tipo_id = %s AND id = %s",
-                (tipo_id, id)
+                "FROM usuario WHERE id = %s",
+                (id,)
             )
             return cur.fetchone()
     finally:
@@ -117,67 +118,42 @@ def crear_usuario(tipo_id, id, nombre, correo, contrasena, rol):
         close_connection(conn)
 
 
-def actualizar_usuario(tipo_id, id, nombre, correo, rol, estado, contrasena=None, nuevo_tipo_id=None):
-    """Actualiza los datos de un usuario existente. Si contrasena no es None, tambien la cambia.
-    Si nuevo_tipo_id difiere, actualiza la PK y las FK de estudiante y cuenta_corriente."""
+def actualizar_usuario(id, nombre, correo, rol, estado, contrasena=None, tipo_id=None):
+    """Actualiza los datos de un usuario existente. Si contrasena no es None, tambien la cambia."""
     conn = get_connection()
     try:
         with conn:
             with conn.cursor() as cur:
                 hashed = bcrypt.hashpw(contrasena.encode('utf-8'), bcrypt.gensalt()).decode('utf-8') if contrasena else None
-                cambio_pk = nuevo_tipo_id and nuevo_tipo_id != tipo_id.strip()
-
-                if cambio_pk:
-                    base_set = "tipo_id = %s, nombre = %s, correo = %s, rol = %s, estado = %s"
-                    params_est = (nuevo_tipo_id, tipo_id, id)
-                    params_cc = (nuevo_tipo_id, tipo_id, id)
-
-                    if hashed:
-                        base_set += ", contrasena = %s"
-                        params_usr = (nuevo_tipo_id, nombre, correo, rol, estado, hashed, tipo_id, id)
-                    else:
-                        params_usr = (nuevo_tipo_id, nombre, correo, rol, estado, tipo_id, id)
-
+                if hashed:
                     cur.execute(
-                        "WITH upd_est AS ("
-                        "  UPDATE estudiante SET tipo_id = %s WHERE tipo_id = %s AND id = %s"
-                        "), upd_cc AS ("
-                        "  UPDATE cuenta_corriente SET tipo_id_usuario = %s WHERE tipo_id_usuario = %s AND id_usuario = %s"
-                        ") UPDATE usuario SET " + base_set + " "
-                        "WHERE tipo_id = %s AND id = %s "
+                        "UPDATE usuario "
+                        "SET tipo_id = %s, nombre = %s, correo = %s, rol = %s, estado = %s, contrasena = %s "
+                        "WHERE id = %s "
                         "RETURNING tipo_id, id, nombre, correo, rol, estado",
-                        params_est + params_cc + params_usr
+                        (tipo_id, nombre, correo, rol, estado, hashed, id)
                     )
                 else:
-                    if hashed:
-                        cur.execute(
-                            "UPDATE usuario "
-                            "SET nombre = %s, correo = %s, rol = %s, estado = %s, contrasena = %s "
-                            "WHERE tipo_id = %s AND id = %s "
-                            "RETURNING tipo_id, id, nombre, correo, rol, estado",
-                            (nombre, correo, rol, estado, hashed, tipo_id, id)
-                        )
-                    else:
-                        cur.execute(
-                            "UPDATE usuario SET nombre = %s, correo = %s, rol = %s, estado = %s "
-                            "WHERE tipo_id = %s AND id = %s "
-                            "RETURNING tipo_id, id, nombre, correo, rol, estado",
-                            (nombre, correo, rol, estado, tipo_id, id)
-                        )
+                    cur.execute(
+                        "UPDATE usuario SET tipo_id = %s, nombre = %s, correo = %s, rol = %s, estado = %s "
+                        "WHERE id = %s "
+                        "RETURNING tipo_id, id, nombre, correo, rol, estado",
+                        (tipo_id, nombre, correo, rol, estado, id)
+                    )
                 return cur.fetchone()
     finally:
         close_connection(conn)
 
 
-def desactivar_usuario(tipo_id, id):
+def desactivar_usuario(id):
     """Cambia estado a INACTIVO. Si es estudiante, desactiva ambos registros."""
     conn = get_connection()
     try:
         with conn:
             with conn.cursor() as cur:
                 cur.execute(
-                    "SELECT codigo FROM estudiante WHERE tipo_id = %s AND id = %s",
-                    (tipo_id, id)
+                    "SELECT codigo FROM estudiante WHERE id = %s",
+                    (id,)
                 )
                 estudiante = cur.fetchone()
 
@@ -188,8 +164,8 @@ def desactivar_usuario(tipo_id, id):
                     )
 
                 cur.execute(
-                    "UPDATE usuario SET estado = 'INACTIVO' WHERE tipo_id = %s AND id = %s",
-                    (tipo_id, id)
+                    "UPDATE usuario SET estado = 'INACTIVO' WHERE id = %s",
+                    (id,)
                 )
     finally:
         close_connection(conn)

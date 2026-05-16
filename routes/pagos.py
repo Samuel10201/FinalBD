@@ -15,27 +15,29 @@ def registro():
         return redirect('/')
 
     if request.method == 'POST':
-        cod_estudiante = request.form.get('cod_estudiante')
+        cod_estudiante = request.form.get('cod_estudiante', '').strip()
         monto = request.form.get('monto')
         codigo_servicio = request.form.get('codigo_servicio')
         cod_periodo = request.form.get('cod_periodo')
-        
-        usuario_actual = session['usuario']
-        
-        try:
-            registrar_pago(
-                cod_estudiante=cod_estudiante,
-                monto=float(monto),
-                metodo='CAJA',
-                codigo_servicio=codigo_servicio,
-                cod_periodo=cod_periodo,
-                id_usuario=usuario_actual['id'],
-                tipo_id_usuario=usuario_actual['tipo_id']
-            )
-            flash('Pago por caja registrado exitosamente en estado PENDIENTE.', 'success')
-            return redirect('/pagos/registro')
-        except Exception as e:
-            flash(f'Error al registrar el pago: {str(e)}', 'error')
+
+        import re
+        if not re.match(r'^[0-9]{2,8}$', cod_estudiante):
+            flash('Ingrese el código del estudiante', 'error')
+        else:
+            usuario_actual = session['usuario']
+            try:
+                registrar_pago(
+                    cod_estudiante=cod_estudiante,
+                    monto=float(monto),
+                    metodo='CAJA',
+                    codigo_servicio=codigo_servicio,
+                    cod_periodo=cod_periodo,
+                    id_usuario=usuario_actual['id']
+                )
+                flash('Pago por caja registrado exitosamente en estado PENDIENTE.', 'success')
+                return redirect('/pagos/registro')
+            except Exception as e:
+                flash('Ingrese el código del estudiante', 'error')
 
     estudiantes = listar_estudiantes()
     periodos = obtener_todos_los_periodos()
@@ -58,7 +60,7 @@ def en_linea():
         return redirect('/')
 
     usuario_actual = session['usuario']
-    cod_estudiante = obtener_codigo_estudiante(usuario_actual['tipo_id'], usuario_actual['id'])
+    cod_estudiante = obtener_codigo_estudiante(usuario_actual['id'])
     
     if not cod_estudiante:
         flash('No se encontró su código de estudiante en el sistema.', 'error')
@@ -76,8 +78,7 @@ def en_linea():
                 metodo='EN LINEA',
                 codigo_servicio=codigo_servicio,
                 cod_periodo=cod_periodo,
-                id_usuario=usuario_actual['id'],
-                tipo_id_usuario=usuario_actual['tipo_id']
+                id_usuario=usuario_actual['id']
             )
             flash('Pago en línea exitoso. Está pendiente de validación bancaria.', 'success')
             return redirect('/estudiante/cuenta')

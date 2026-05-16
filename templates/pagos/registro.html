@@ -7,8 +7,8 @@
     <h2>Registrar Pago por Caja</h2>
     <form method="POST" action="/pagos/registro">
         <div class="form-group">
-            <label for="cod_estudiante">Estudiante</label>
-            <input list="estudiantes_list" id="cod_estudiante" name="cod_estudiante" required placeholder="Buscar estudiante...">
+            <label for="cod_estudiante">Código de Estudiante</label>
+            <input list="estudiantes_list" id="cod_estudiante" name="cod_estudiante" required placeholder="Ej: 200001" pattern="^[0-9]{2,8}$" title="Ingrese el código numérico del estudiante (2 a 8 dígitos)">
             <datalist id="estudiantes_list">
                 {% for est in estudiantes %}
                 <option value="{{ est.codigo }}">{{ est.nombre }} ({{ est.id }})</option>

@@ -16,20 +16,25 @@ def consulta():
     periodo_seleccionado = None
     
     if request.method == 'POST':
-        cod_estudiante = request.form.get('cod_estudiante')
+        cod_estudiante = request.form.get('cod_estudiante', '').strip()
         cod_periodo = request.form.get('cod_periodo')
-        
+
         if not cod_periodo:
-            cod_periodo = None # Si viene vacio, mostramos todo
-            
-        if cod_estudiante:
+            cod_periodo = None
+
+        import re
+        if not cod_estudiante:
+            pass
+        elif not re.match(r'^[0-9]{2,8}$', cod_estudiante):
+            flash('Ingrese el código del estudiante', 'error')
+        else:
             estudiante_seleccionado = obtener_cuenta(cod_estudiante)
             if estudiante_seleccionado:
                 movimientos = listar_movimientos(cod_estudiante, cod_periodo)
                 saldo = calcular_saldo(cod_estudiante, cod_periodo)
                 periodo_seleccionado = cod_periodo
             else:
-                flash('El estudiante no existe.', 'error')
+                flash('Ingrese el código del estudiante', 'error')
                 
     return render_template(
         'cuenta_corriente/consulta.html', 
@@ -49,7 +54,7 @@ def cuenta_propia():
         return redirect('/login')
         
     usuario = session['usuario']
-    cod_estudiante = obtener_codigo_estudiante(usuario['tipo_id'], usuario['id'])
+    cod_estudiante = obtener_codigo_estudiante(usuario['id'])
     
     if not cod_estudiante:
         flash('Estudiante no encontrado en el sistema', 'error')

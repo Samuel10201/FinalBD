@@ -82,23 +82,35 @@ def obtener_programas_activos():
         close_connection(conn)
 
 
-def obtener_periodos_activos():
-    """Retorna lista de períodos ACTIVOS para autocompletado.
-    
-    Retorna:
-        list: Lista de diccionarios {'codigo': '...', 'descripcion': '...'}
-    """
+def obtener_periodos_matricula_individual():
+    """Retorna los próximos periodos (todos los tipos: 10, 20, 30)."""
     conn = get_connection()
     try:
         with conn.cursor() as cur:
             cur.execute("""
-                SELECT codigo, descripcion 
-                FROM periodo 
-                WHERE estado = 'ACTIVO'
-                ORDER BY codigo DESC
+                SELECT codigo, descripcion FROM periodo
+                WHERE fecha_inicio > CURRENT_DATE
+                ORDER BY fecha_inicio
+                LIMIT 3
             """)
-            resultado = [dict(row) for row in cur.fetchall()]
-        return resultado
+            return [dict(row) for row in cur.fetchall()]
+    finally:
+        close_connection(conn)
+
+
+def obtener_periodos_matricula_masiva():
+    """Retorna los próximos periodos regulares (solo 10 y 30, sin intersemestrales)."""
+    conn = get_connection()
+    try:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT codigo, descripcion FROM periodo
+                WHERE fecha_inicio > CURRENT_DATE
+                  AND codigo NOT LIKE '%%20'
+                ORDER BY fecha_inicio
+                LIMIT 2
+            """)
+            return [dict(row) for row in cur.fetchall()]
     finally:
         close_connection(conn)
 
@@ -112,24 +124,23 @@ def obtener_datos_formulario_individual():
     return {
         'estudiantes': obtener_estudiantes_activos(),
         'programas': obtener_programas_activos(),
-        'periodos': obtener_periodos_activos()
+        'periodos': obtener_periodos_matricula_individual()
     }
 
 
 # ===================== FUNCIÓN PRINCIPAL: CREAR MATRÍCULA INDIVIDUAL =====================
 
-def crear_matricula_individual(cod_estudiante, prog_acad, cod_periodo, modalidad, semestre, tipo_id_usuario, id_usuario):
+def crear_matricula_individual(cod_estudiante, prog_acad, cod_periodo, modalidad, semestre, id_usuario):
     """Crea una matrícula individual y genera el cobro en cuenta_corriente.
-    
+
     Garantiza atomicidad: si algo falla, todo se revierte (ROLLBACK).
-    
+
     Args:
         cod_estudiante (str): Código del estudiante (ej: '00123456')
         prog_acad (str): Nombre del programa académico (ej: 'Ingenieria de Sistemas')
         cod_periodo (str): Código del período (ej: '202210')
         modalidad (str): 'GLOBAL' o 'CREDITO'
         semestre (int): Semestre a cursar (1-12)
-        tipo_id_usuario (str): Tipo ID del usuario autenticado (ej: 'CC')
         id_usuario (str): ID del usuario autenticado (ej: '1234567890')
     
     Retorna:
@@ -248,11 +259,11 @@ def crear_matricula_individual(cod_estudiante, prog_acad, cod_periodo, modalidad
                 # 10. INSERT en cuenta_corriente (cobro)
                 descripcion = f"Matrícula {prog_acad} - Período {cod_periodo} - {modalidad}"
                 cur.execute(
-                    """INSERT INTO cuenta_corriente 
-                       (descripcion_mov, valor, cod_estudiante, tipo_id_usuario, id_usuario, 
+                    """INSERT INTO cuenta_corriente
+                       (descripcion_mov, valor, cod_estudiante, id_usuario,
                         codigo_servicio, codigo_periodo, id_pago)
-                       VALUES (%s, %s, %s, %s, %s, %s, %s, NULL)""",
-                    (descripcion, monto_cobro, cod_estudiante, tipo_id_usuario, id_usuario,
+                       VALUES (%s, %s, %s, %s, %s, %s, NULL)""",
+                    (descripcion, monto_cobro, cod_estudiante, id_usuario,
                      codigo_servicio, cod_periodo)
                 )
                 
@@ -364,13 +375,12 @@ def obtener_estudiantes_para_masiva(prog_acad, cod_periodo_destino):
         close_connection(conn)
 
 
-def crear_matriculas_masivas(prog_acad, cod_periodo_destino, tipo_id_usuario, id_usuario):
+def crear_matriculas_masivas(prog_acad, cod_periodo_destino, id_usuario):
     """Crea matrículas masivas para todos los estudiantes activos del programa.
-    
+
     Args:
         prog_acad (str): Programa académico
         cod_periodo_destino (str): Período destino
-        tipo_id_usuario (str): Usuario autenticado
         id_usuario (str): Usuario autenticado
     
     Retorna:
@@ -407,7 +417,6 @@ def crear_matriculas_masivas(prog_acad, cod_periodo_destino, tipo_id_usuario, id
                 cod_periodo=cod_periodo_destino,
                 modalidad=est['modalidad'],
                 semestre=est['nuevo_semestre'],
-                tipo_id_usuario=tipo_id_usuario,
                 id_usuario=id_usuario
             )
             resultado['total_creadas'] += 1

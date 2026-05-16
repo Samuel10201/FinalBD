@@ -25,7 +25,13 @@
     {% if datos.plan_estudio %}
         {% for semestre_data in datos.plan_estudio %}
             <h3 style="margin-top: 15px; color: #1e293b;">Semestre {{ semestre_data.semestre }}</h3>
-            <table>
+            <table style="table-layout: fixed;">
+                <colgroup>
+                    <col style="width: 15%;">
+                    <col style="width: 45%;">
+                    <col style="width: 15%;">
+                    <col style="width: 25%;">
+                </colgroup>
                 <thead>
                     <tr>
                         <th>Código</th>
