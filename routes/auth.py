@@ -71,6 +71,8 @@ def cambiar_vista():
         return redirect('/')
     vista = request.form.get('vista_rol')
     session['vista_rol'] = vista
+    if vista != 'ESTUDIANTE':
+        session.pop('estudiante_vista', None)
     return redirect(DESTINOS_POR_ROL.get(vista, '/admin/usuarios'))
 
 

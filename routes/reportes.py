@@ -8,6 +8,7 @@ from services.reporte_service import (
     get_reporte_ingreso_real,
     get_reporte_cartera
 )
+from services.config_academica_service import listar_estudiantes as listar_estudiantes_srv
 from models.db import get_connection, close_connection
 from routes import login_required, rol_requerido
 
@@ -17,28 +18,50 @@ reportes_bp = Blueprint('reportes', __name__)
 @login_required
 def perfil():
     usuario = session['usuario']
+    es_admin_vista = usuario['rol'] == 'ADMINISTRADOR' and session.get('vista_rol') == 'ESTUDIANTE'
 
-    conn = get_connection()
-    try:
-        with conn.cursor() as cur:
-            cur.execute("SELECT codigo FROM estudiante WHERE id = %s",
-                        (usuario['id'],))
-            res = cur.fetchone()
-            codigo_estudiante = res['codigo'] if res else None
-    finally:
-        close_connection(conn)
+    if usuario['rol'] != 'ESTUDIANTE' and not es_admin_vista:
+        flash('Acceso denegado', 'error')
+        return redirect('/')
+
+    estudiantes = []
+    if es_admin_vista:
+        codigo_param = request.args.get('codigo', '').strip()
+        if codigo_param:
+            session['estudiante_vista'] = codigo_param
+        codigo_estudiante = session.get('estudiante_vista')
+        estudiantes = listar_estudiantes_srv(limit=500)
+    else:
+        conn = get_connection()
+        try:
+            with conn.cursor() as cur:
+                cur.execute("SELECT codigo FROM estudiante WHERE id = %s",
+                            (usuario['id'],))
+                res = cur.fetchone()
+                codigo_estudiante = res['codigo'] if res else None
+        finally:
+            close_connection(conn)
 
     if not codigo_estudiante:
+        if es_admin_vista:
+            return render_template('estudiante/perfil.html', datos=None,
+                                   es_admin_vista=True, estudiantes=estudiantes, codigo_estudiante=None)
         flash('No se encontró información del estudiante vinculada a tu cuenta', 'error')
         return redirect('/')
 
     datos = get_estudiante_perfil(codigo_estudiante)
-    
+
     if not datos or not datos['estudiante']:
+        if es_admin_vista:
+            session.pop('estudiante_vista', None)
+            flash('Estudiante no encontrado', 'error')
+            return render_template('estudiante/perfil.html', datos=None,
+                                   es_admin_vista=True, estudiantes=estudiantes, codigo_estudiante=None)
         flash('No se encontró el perfil', 'error')
         return redirect('/')
-        
-    return render_template('estudiante/perfil.html', datos=datos)
+
+    return render_template('estudiante/perfil.html', datos=datos,
+                           es_admin_vista=es_admin_vista, estudiantes=estudiantes, codigo_estudiante=codigo_estudiante)
 
 
 @reportes_bp.route('/reportes/estudiantes-programa')

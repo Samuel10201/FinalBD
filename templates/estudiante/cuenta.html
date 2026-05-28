@@ -3,9 +3,31 @@
 {% block titulo %}Mi Cuenta Corriente{% endblock %}
 
 {% block contenido %}
+
+{% if es_admin_vista %}
+<div class="card" style="margin-bottom: 1rem;">
+    <h3 style="margin-bottom: 0.5rem; color: #1e293b;">Seleccionar Estudiante</h3>
+    <form method="GET" action="/estudiante/cuenta" class="form-inline">
+        <div class="form-group">
+            <label for="codigo">Código</label>
+            <input type="text" id="codigo" name="codigo" value="{{ codigo_estudiante or '' }}"
+                   placeholder="Código del estudiante" list="estudiantes_list" required>
+            <datalist id="estudiantes_list">
+                {% for e in estudiantes %}
+                <option value="{{ e.codigo }}">{{ e.nombre }}</option>
+                {% endfor %}
+            </datalist>
+        </div>
+        <div class="form-buttons">
+            <button type="submit" class="btn btn-primary">Ver</button>
+        </div>
+    </form>
+</div>
+{% endif %}
+
 <div class="card p-4">
     <h2>Mi Estado de Cuenta</h2>
-    
+
     {% if estudiante %}
         <p>
             <strong>Hola, {{ estudiante.nombre }}. Tu balance actual es:</strong><br>

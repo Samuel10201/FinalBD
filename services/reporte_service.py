@@ -62,18 +62,16 @@ def get_reporte_estudiantes_programa(periodo, programa):
         with conn.cursor(cursor_factory=DictCursor) as cur:
             cur.execute("""
                 SELECT e.codigo, e.nombre, m.modalidad, m.semestre,
-                       CASE
-                           WHEN m.modalidad = 'GLOBAL' THEN c.costo_global
-                           ELSE (
-                               SELECT COALESCE(SUM(a.creditos), 0) * c.costo_credito
-                               FROM plan_estudio pe
-                               JOIN asignatura a ON pe.cod_asignatura = a.codigo
-                               WHERE pe.nombre_programa = m.prog_acad AND pe.semestre = m.semestre
-                           )
-                       END as monto
+                       COALESCE((
+                           SELECT SUM(cc.valor)
+                           FROM cuenta_corriente cc
+                           JOIN servicio s ON cc.codigo_servicio = s.codigo
+                           WHERE cc.cod_estudiante = e.codigo
+                             AND cc.codigo_periodo = m.cod_periodo
+                             AND s.grupo = 'COBRO'
+                       ), 0) AS monto
                 FROM matricula m
                 JOIN estudiante e ON m.cod_estudiante = e.codigo
-                JOIN costo c ON c.prog_academico = m.prog_acad AND c.cod_periodo = m.cod_periodo
                 WHERE m.cod_periodo = %s AND m.prog_acad = %s
                 ORDER BY e.nombre
             """, (periodo, programa))
@@ -93,31 +91,32 @@ def get_reporte_pendientes_pago(periodo, programa):
     try:
         with conn.cursor(cursor_factory=DictCursor) as cur:
             cur.execute("""
-                SELECT e.codigo, e.nombre,
-                       ABS(SUM(
-                           CASE
-                               WHEN s.grupo = 'COBRO' THEN -cc.valor
-                               WHEN s.grupo = 'PAGO' THEN cc.valor
-                               ELSE 0
-                           END
-                       )) AS saldo_pendiente
-                FROM cuenta_corriente cc
-                JOIN estudiante e ON cc.cod_estudiante = e.codigo
-                JOIN servicio s ON cc.codigo_servicio = s.codigo
-                JOIN matricula m ON m.cod_estudiante = e.codigo AND m.cod_periodo = cc.codigo_periodo
-                LEFT JOIN pago p ON cc.id_pago = p.id
-                WHERE cc.codigo_periodo = %s
-                  AND m.prog_acad = %s
-                  AND (cc.id_pago IS NULL OR p.estado <> 'ANULADO')
-                GROUP BY e.codigo, e.nombre
-                HAVING SUM(
-                    CASE
-                        WHEN s.grupo = 'COBRO' THEN -cc.valor
-                        WHEN s.grupo = 'PAGO' THEN cc.valor
-                        ELSE 0
-                    END
-                ) < 0
-                ORDER BY e.nombre
+                SELECT codigo, nombre, saldo_pendiente
+                FROM (
+                    SELECT e.codigo, e.nombre,
+                           COALESCE((
+                               SELECT SUM(cc.valor)
+                               FROM cuenta_corriente cc
+                               JOIN servicio s ON cc.codigo_servicio = s.codigo
+                               WHERE cc.cod_estudiante = e.codigo
+                                 AND cc.codigo_periodo = m.cod_periodo
+                                 AND s.grupo = 'COBRO'
+                           ), 0)
+                           -
+                           COALESCE((
+                               SELECT SUM(cc.valor)
+                               FROM cuenta_corriente cc
+                               JOIN servicio s ON cc.codigo_servicio = s.codigo
+                               WHERE cc.cod_estudiante = e.codigo
+                                 AND cc.codigo_periodo = m.cod_periodo
+                                 AND s.grupo = 'PAGO'
+                           ), 0) AS saldo_pendiente
+                    FROM matricula m
+                    JOIN estudiante e ON m.cod_estudiante = e.codigo
+                    WHERE m.cod_periodo = %s AND m.prog_acad = %s
+                ) sub
+                WHERE saldo_pendiente > 0
+                ORDER BY nombre
             """, (periodo, programa))
             return cur.fetchall()
     finally:
@@ -129,15 +128,19 @@ def get_reporte_ingreso_real(periodo, programa):
     try:
         with conn.cursor(cursor_factory=DictCursor) as cur:
             cur.execute("""
-                SELECT COALESCE(SUM(cc.valor), 0) AS total_ingreso
-                FROM cuenta_corriente cc
-                JOIN servicio s ON cc.codigo_servicio = s.codigo
-                JOIN matricula m ON m.cod_estudiante = cc.cod_estudiante AND m.cod_periodo = cc.codigo_periodo
-                LEFT JOIN pago p ON cc.id_pago = p.id
-                WHERE cc.codigo_periodo = %s
-                  AND m.prog_acad = %s
-                  AND s.grupo = 'PAGO'
-                  AND (cc.id_pago IS NULL OR p.estado <> 'ANULADO')
+                SELECT COALESCE(SUM(pagado), 0) AS total_ingreso
+                FROM (
+                    SELECT COALESCE((
+                               SELECT SUM(cc.valor)
+                               FROM cuenta_corriente cc
+                               JOIN servicio s ON cc.codigo_servicio = s.codigo
+                               WHERE cc.cod_estudiante = m.cod_estudiante
+                                 AND cc.codigo_periodo = m.cod_periodo
+                                 AND s.grupo = 'PAGO'
+                           ), 0) AS pagado
+                    FROM matricula m
+                    WHERE m.cod_periodo = %s AND m.prog_acad = %s
+                ) sub
             """, (periodo, programa))
             res = cur.fetchone()
             return float(res['total_ingreso']) if res and res['total_ingreso'] else 0.0
@@ -147,7 +150,7 @@ def get_reporte_ingreso_real(periodo, programa):
 
 def get_reporte_cartera(periodo, programa):
     pendientes = get_reporte_pendientes_pago(periodo, programa)
-    total_cartera = sum([float(p['saldo_pendiente']) for p in pendientes])
+    total_cartera = sum(float(p['saldo_pendiente']) for p in pendientes)
     return total_cartera, pendientes
 
 

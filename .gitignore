@@ -32,3 +32,9 @@ sql/reseed.py
 sql/migrate_tildes.py
 
 credenciales_prueba.txt
+
+# Claude Code
+.claude/
+
+# Gitignore
+.gitignore

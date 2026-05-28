@@ -49,24 +49,50 @@ def consulta():
 @cuenta_corriente_bp.route('/estudiante/cuenta')
 def cuenta_propia():
     """Mostrar los movimientos y saldo exclusivamente del estudiante en sesión."""
-    if 'usuario' not in session or session['usuario']['rol'] != 'ESTUDIANTE':
-        flash('Acceso denegado', 'error')
+    if 'usuario' not in session:
+        flash('Debe iniciar sesión', 'error')
         return redirect('/login')
-        
+
     usuario = session['usuario']
-    cod_estudiante = obtener_codigo_estudiante(usuario['id'])
-    
+    es_admin_vista = usuario['rol'] == 'ADMINISTRADOR' and session.get('vista_rol') == 'ESTUDIANTE'
+
+    if usuario['rol'] != 'ESTUDIANTE' and not es_admin_vista:
+        flash('Acceso denegado', 'error')
+        return redirect('/')
+
+    estudiantes_lista = []
+    if es_admin_vista:
+        codigo_param = request.args.get('codigo', '').strip()
+        if codigo_param:
+            session['estudiante_vista'] = codigo_param
+        cod_estudiante = session.get('estudiante_vista')
+        estudiantes_lista = listar_estudiantes(limit=500)
+    else:
+        cod_estudiante = obtener_codigo_estudiante(usuario['id'])
+
     if not cod_estudiante:
+        if es_admin_vista:
+            return render_template('estudiante/cuenta.html', estudiante=None, movimientos=[], saldo=0,
+                                   es_admin_vista=True, estudiantes=estudiantes_lista, codigo_estudiante=None)
         flash('Estudiante no encontrado en el sistema', 'error')
         return redirect('/')
-    
+
     estudiante = obtener_cuenta(cod_estudiante)
+    if not estudiante and es_admin_vista:
+        session.pop('estudiante_vista', None)
+        flash('Estudiante no encontrado', 'error')
+        return render_template('estudiante/cuenta.html', estudiante=None, movimientos=[], saldo=0,
+                               es_admin_vista=True, estudiantes=estudiantes_lista, codigo_estudiante=None)
+
     movimientos = listar_movimientos(cod_estudiante)
     saldo = calcular_saldo(cod_estudiante)
-    
+
     return render_template(
         'estudiante/cuenta.html',
         estudiante=estudiante,
         movimientos=movimientos,
-        saldo=saldo
+        saldo=saldo,
+        es_admin_vista=es_admin_vista,
+        estudiantes=estudiantes_lista,
+        codigo_estudiante=cod_estudiante
     )
