@@ -50,6 +50,7 @@ def login():
             return redirect(DESTINOS_POR_ROL.get(usuario['rol'], '/'))
 
         flash('Correo o contraseña incorrectos', 'error')
+        return render_template('auth/login.html', correo=correo)
 
     return render_template('auth/login.html')
 

@@ -100,7 +100,7 @@ document.addEventListener('DOMContentLoaded', function() {
             } else if (el.validity.patternMismatch) {
                 el.setCustomValidity('Por favor, utilice el formato indicado: ' + (el.title || ''));
             } else if (el.validity.typeMismatch) {
-                el.setCustomValidity('Por favor, introduzca un valor válido');
+                el.setCustomValidity(el.type === 'email' ? 'Por favor, introduzca un correo existente' : 'Por favor, introduzca un valor válido');
             } else {
                 el.setCustomValidity('');
             }
