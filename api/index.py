@@ -9,6 +9,7 @@ from routes.config_academica import config_academica_bp
 from routes.config_operativa import config_operativa_bp
 from routes.matricula import matricula_bp
 from routes.pagos import pagos_bp
+from routes.cargos import cargos_bp
 from routes.cuenta_corriente import cuenta_corriente_bp
 from routes.reportes import reportes_bp
 
@@ -22,6 +23,7 @@ def create_app():
     app.register_blueprint(config_operativa_bp)
     app.register_blueprint(matricula_bp)
     app.register_blueprint(pagos_bp)
+    app.register_blueprint(cargos_bp)
     app.register_blueprint(cuenta_corriente_bp)
     app.register_blueprint(reportes_bp)
 
